@@ -12,7 +12,7 @@ npm ci --cache /workspace/.npm-cache
 npm run dev
 ```
 
-Open `/` or `/demo` on the local server's port 3000. Demo records are fictional and changes reset on reload. Demo role selection grants no real application access. `/login` clearly shows when real authentication is unconfigured.
+Open `/` or `/demo` on the local server's port 3000. Demo records are fictional and persist in this browser until Reset demo data is used. Demo role selection grants no real application access. `/login` clearly shows when real authentication is unconfigured.
 
 ```sh
 npm test
@@ -32,8 +32,12 @@ Disable public registration in the Supabase dashboard. The initial Admin members
 
 The authenticated `/workspace` loads the latest 50 sessions plus open sessions for up to 100 pilot teachers and exposes operations permitted for the active membership: Teacher check-in/out and correction requests; Admin completed entry, correction decisions, exception resolution and session verification. It shows original/effective times and review history, and disables changes on allocated sessions. All mutation permissions are checked again in PostgreSQL. Errors retain form input; retries use the same key. Browser inputs are explicitly converted from Asia/Yangon rather than device timezone. Hosted validation is still pending.
 
-See [implementation plan](docs/IMPLEMENTATION_PLAN.md) for decisions, ERD, permissions, route map, outstanding work, and release gates. Netlify configuration is prepared but nothing has been deployed.
+See [implementation plan](docs/IMPLEMENTATION_PLAN.md) for decisions, ERD, permissions, route map, outstanding work, and release gates. Netlify configuration is prepared; deployed-site status must be checked in Netlify.
 
 ## Payroll increment
 
 See [payroll workflow](docs/PAYROLL_WORKFLOW.md). If the first four migrations are already applied, run **only** `supabase/migrations/202610220005_payroll.sql` in the development project’s SQL Editor as postgres. Do not rerun the original combined setup. This increment is locally validated but has not been applied or verified against hosted authenticated users by the agent.
+
+## Uploaded prototype increment
+
+See [prototype alignment and migration 006 instructions](docs/PROTOTYPE_ALIGNMENT.md). The original uploaded blue design and demonstration model are now incorporated. On an existing database with 001–005 installed, run only migration 006; keep RLS enabled. Hosted authenticated browser validation remains outstanding.

@@ -1,32 +1,29 @@
-import { test, expect } from '@playwright/test';
-import {loadEnvConfig} from '@next/env';
-loadEnvConfig(process.cwd());
-const configured=Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL&&process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
-test('landing, demo search, eligibility and role isolation',async({page})=>{
- await page.goto('/');await page.getByRole('link',{name:'Explore the demo'}).click();
- await expect(page.getByRole('heading',{name:'A clearer view of your school.'})).toBeVisible();
- await expect(page.getByRole('cell',{name:'Pending correction',exact:true})).toBeVisible();
- await page.getByRole('textbox',{name:'Search teaching records'}).fill('U Min');
- await expect(page.locator('tbody tr')).toHaveCount(1);
- await page.getByRole('textbox',{name:'Search teaching records'}).fill('');
- await page.getByLabel('Demo perspective').selectOption('Teacher');
- await expect(page.locator('tbody tr')).toHaveCount(2);
- await expect(page.getByRole('cell',{name:'U Min Htet',exact:false})).toHaveCount(0);
- await expect(page.getByRole('button',{name:'Verify →'})).toHaveCount(0);
- await page.getByRole('button',{name:'Payroll',exact:true}).click();
- await expect(page.getByText('Approval and payment recording are not enabled in this demo.',{exact:false})).toBeVisible();
+import {test,expect} from '@playwright/test';
+test('prototype navigation, search and Teacher perspective',async({page})=>{
+ await page.goto('/');await expect(page).toHaveURL(/\/login$/);await page.getByRole('link',{name:'Admin',exact:true}).click();
+ await expect(page.getByRole('heading',{name:'Academy overview'})).toBeVisible();
+ await page.getByRole('button',{name:'Class records',exact:true}).click();
+ await page.getByRole('searchbox',{name:'Search records'}).fill('Ko Min Thu');await expect(page.locator('tbody tr')).toHaveCount(3);
+ await page.getByLabel('Demo perspective').selectOption('teacher');await page.getByRole('button',{name:'My class records',exact:true}).click();
+ await expect(page.locator('tbody tr')).toHaveCount(3);await expect(page.getByRole('cell',{name:'Ko Min Thu',exact:false})).toHaveCount(0);await expect(page.getByRole('button',{name:'Verify record',exact:true})).toHaveCount(0);
 });
-test('real workspace requires authentication',async({page})=>{
- await page.goto('/workspace');await expect(page).toHaveURL(/\/login$/);
- if(configured){await expect(page.getByLabel('Email address')).toBeVisible();await expect(page.getByLabel('Password',{exact:true})).toBeVisible();}
- else{await expect(page.getByText('School sign-in is not connected yet.',{exact:false})).toBeVisible();await expect(page.getByRole('button',{name:'Sign in'})).toHaveCount(0);}
+test('correction separates dates and times and confirms unsaved changes',async({page})=>{
+ await page.goto('/demo?role=teacher');await page.getByRole('button',{name:'My class records',exact:true}).click();await page.getByRole('button',{name:'Details',exact:true}).first().click();await page.getByRole('button',{name:'Request correction',exact:true}).click();
+ for(const label of ['Correct start date','Correct start time','Correct end date','Correct end time'])await expect(page.getByLabel(label,{exact:true})).toBeVisible();
+ await page.getByLabel('Reason / Admin comment').fill('A correction explanation');await page.keyboard.press('Escape');await expect(page.getByText('Discard unsaved changes?')).toBeVisible();await page.getByRole('button',{name:'Keep editing'}).click();await expect(page.getByLabel('Reason / Admin comment')).toHaveValue('A correction explanation');await page.keyboard.press('Escape');await page.getByRole('button',{name:'Discard changes'}).click();await expect(page.getByRole('dialog')).toHaveCount(0);
 });
-test('mobile navigation and record filtering',async({page})=>{
- await page.setViewportSize({width:360,height:800});await page.goto('/demo');
- await page.getByRole('button',{name:'Teaching records'}).click();
- await page.getByRole('textbox',{name:'Search teaching records'}).fill('no matching record');
- await expect(page.getByText('No matching teaching records.')).toBeVisible();
- await expect(page.locator('body')).toHaveJSProperty('scrollWidth',360);
+test('mobile navigation and table stay within viewport',async({page})=>{
+ await page.setViewportSize({width:360,height:800});await page.goto('/demo');await page.getByRole('button',{name:'Toggle navigation'}).click();await page.getByRole('button',{name:'Class records',exact:true}).click();await page.getByRole('searchbox',{name:'Search records'}).fill('no matching record');await expect(page.getByRole('heading',{name:'No matching class records'})).toBeVisible();await expect(page.locator('body')).toHaveJSProperty('scrollWidth',360);
 });
-
-test('payroll and payment routes require real authentication',async({page})=>{await page.goto('/workspace/payroll');await expect(page).toHaveURL(/\/login$/);await expect(page.getByRole('heading',{name:'Payroll & payments',exact:true})).toHaveCount(0);});
+test('real workspace and payroll require authentication',async({page})=>{
+ for(const path of ['/workspace','/workspace/payroll','/workspace/manage']){await page.goto(path);await expect(page).toHaveURL(/\/login$/);await expect(page.getByLabel('Email address')).toBeVisible();}
+});
+test('prototype verification, payroll approval, payment and browser persistence',async({page})=>{
+ await page.goto('/demo');await page.getByRole('button',{name:'Class records',exact:true}).click();
+ for(const id of ['S0001','S0002']){const row=page.locator('tbody tr').filter({hasText:id});await row.getByRole('button',{name:'Verify record',exact:true}).click();await page.getByRole('button',{name:'Save verification',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);}
+ await page.getByRole('button',{name:'Payroll',exact:true}).click();await page.getByRole('button',{name:'Calculate draft'}).click();await expect(page.getByText('Total 147,000 MMK',{exact:true})).toBeVisible();await page.getByRole('button',{name:'Approve payroll',exact:true}).click();await page.getByRole('button',{name:'Open payments',exact:true}).click();await page.getByRole('button',{name:'Record payment',exact:true}).first().click();await page.getByLabel('Reference or cash receipt note').fill('Fictional receipt');await page.getByRole('dialog').getByRole('button',{name:'Record payment',exact:true}).click();await expect(page.getByRole('button',{name:'Reverse',exact:true})).toHaveCount(1);
+ await page.reload();await expect(page.getByRole('button',{name:'Reverse',exact:true})).toHaveCount(1);await page.getByLabel('Demo perspective').selectOption('teacher');await page.getByRole('button',{name:'My payments',exact:true}).click();await expect(page.locator('tbody tr')).toHaveCount(1);await expect(page.getByRole('button',{name:'Record payment',exact:true})).toHaveCount(0);
+});
+test('Teacher check-in uses a green elapsed timer and prevents a second active class',async({page})=>{
+ await page.clock.install({time:new Date('2026-10-22T03:30:00Z')});await page.goto('/demo?role=teacher');await page.getByRole('button',{name:'Check in to Mathematics',exact:true}).click();await expect(page.locator('.clock-card.is-running')).toBeVisible();await expect(page.getByRole('timer',{name:'Elapsed teaching time'})).toHaveText('00:00:00');await page.clock.fastForward(65000);await expect(page.getByRole('timer',{name:'Elapsed teaching time'})).toHaveText('00:01:05');await expect(page.getByRole('button',{name:'Check in to English',exact:true})).toBeDisabled();await page.getByRole('button',{name:'Check out',exact:true}).click();await expect(page.getByRole('timer',{name:'Elapsed teaching time'})).toHaveCount(0);
+});

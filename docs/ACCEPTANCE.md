@@ -14,7 +14,7 @@ Source: [Ai14_EduControl_PRD03_MM.md](reference/Ai14_EduControl_PRD03_MM.md), §
 | AT08 | Completed/Pending excluded | Eligibility component; authoritative draft pending |
 | AT09 | Pending correction held, times retained | Pending request holds verification; original/effective/proposed times retained; tested via SQL RPC; payroll RPCs tested with synthetic sessions; original fixture integration pending |
 | AT10 | CR003 approval/verification gives 65 min / 13,000 MMK | 65-minute correction approval and separate verification tested; payroll RPCs tested with synthetic sessions; original fixture integration pending |
-| AT11 | Rejected CR004 preserves 60 min / 13,000 MMK | Reason-required rejection leaves times unchanged, tested; 60-minute amount component passes; original CR004 session dataset unavailable |
+| AT11 | Rejected CR004 preserves 60 min / 13,000 MMK | Reason-required rejection leaves times unchanged, tested; 60-minute amount component passes; uploaded fixture now available; its effective result is covered by the twelve-session payroll integration |
 | AT12 | Unassigned coverage cannot verify | Capture assignment checks; mismatch flags block verification until reasoned Admin resolution; tested |
 | AT13 | Overnight 60 min, start-date period | Duration and Yangon date tested; database payroll selection pending |
 | AT14 | Same-date end before start rejected | Calculation/SQL interval validation and explicit datetime forms implemented; hosted browser validation pending |
@@ -29,7 +29,7 @@ Source: [Ai14_EduControl_PRD03_MM.md](reference/Ai14_EduControl_PRD03_MM.md), §
 | AT23 | Unpaid void/replacement preserves audit | Unpaid Void retains lines/audit, releases allocation and permits replacement, tested locally |
 | AT24 | Payment reversal retains original/history | Reasoned reversal retains original; retry/race and replacement payment tests pass locally |
 | AT25 | Concurrent edit/review version conflict | Parallel correction request, approve/reject and verification races tested on PostgreSQL 17; financial approval and payment races also tested locally |
-| AT26 | Base 785 min / 147,000 MMK | Published teacher summary arithmetic tested; original session fixture missing |
+| AT26 | Base 785 min / 147,000 MMK | Published teacher summary arithmetic tested; original twelve-session fixture passes through model and database RPCs |
 | AT27 | Corrected 980 min / 182,500 MMK | Published increments tested; correction-to-payroll RPCs tested with synthetic sessions; original fixture integration pending |
 | AT28 | Per-session rounding 8,333 + 167 = 8,500 | Unit test passes |
 | AT29 | Deactivation revokes sessions, preserves payable history | Inactive-membership RLS denial tested; profile deactivation preserves history and blocks new capture; hosted session revocation and payroll pending |
@@ -39,9 +39,9 @@ Source: [Ai14_EduControl_PRD03_MM.md](reference/Ai14_EduControl_PRD03_MM.md), §
 
 ## Gaps discovered in source comparison
 
-- The original prototype is still needed to claim approved interface parity. The current English demo is a scaffold; Burmese Unicode screens/localization and correction/payment screens remain required.
+- The uploaded prototype is now incorporated; see PROTOTYPE_ALIGNMENT.md for scope, deliberate differences and hosted validation limits.
 - PRD §13 supplies teacher summary totals, S0003/CR003 and S0006/CR004 behavior, and two correction increments, but not every original session row. Aggregate arithmetic must not be reported as full fixture integration.
 - Teacher permissions have been tightened: raw rate history is Admin-only; Teacher applied rates belong in approved payroll lines.
 - Ownership of past records is separate from profile eligibility to start a lesson. An inactive profile retains history for an active account; an inactive membership loses application access immediately.
-- Six-hour automatic review was proposed in this older PRD; later backend pilot decision excludes it from the initial release.
+- Six-hour review was previously excluded by the backend pilot; migration 006 restores it in response to the request to follow the uploaded prototype.
 - Rounding/time defaults marked proposed here have subsequent MVP approval notes in supplied backend v1. Preserve those decisions for development and reconcile final policy version before pilot.

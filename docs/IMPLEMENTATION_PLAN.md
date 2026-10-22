@@ -118,3 +118,7 @@ For staging: apply migrations in order, securely bootstrap the initial owner mem
 For release: record prior Netlify deployment, take/verify backup, apply reviewed additive migrations and deploy a tagged build. If application rollback is needed, redeploy the known-good frontend while preserving database compatibility. Treat database recovery as a separate reviewed procedure; never automatically drop tables or reset a project. Do not release with wrong payroll, data leakage, duplicate financial writes, or an untested restore.
 
 Payroll implementation and new migration details: [PAYROLL_WORKFLOW.md](PAYROLL_WORKFLOW.md). The original four migrations were applied by the owner; run only the new 005 migration for this increment.
+
+## Prototype increment superseding earlier gap notes
+
+The supplied ZIP now provides the original design and full twelve-session snapshot. See [PROTOTYPE_ALIGNMENT.md](PROTOTYPE_ALIGNMENT.md) for completed UI/master-data/capture alignment, exact fixture tests and remaining hosted checks. The owner previously applied 001–005; only 006 is new. Earlier missing-prototype and missing-fixture notes above describe the state before this upload.
