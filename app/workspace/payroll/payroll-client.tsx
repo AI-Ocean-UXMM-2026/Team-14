@@ -1,4 +1,6 @@
 "use client";
+import SaveNotice from "@/app/components/save-notice";
+import {periodLabel,weekPeriod} from "@/lib/domain/display";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import WorkspaceShell from "@/app/components/workspace-shell";
@@ -71,7 +73,7 @@ export default function PayrollClient(p: PayrollClientProps) {
     adjustment = row?.adjustments[0];
   const onSaved = (id?: string) => {
     setModal(null);
-    setNotice("Saved successfully.");
+    const messages:Record<string,string>={approve:'Payroll approved. Amounts are frozen; payment remains separate.',recalculate:'Draft recalculated. Review the updated amounts before approval.',adjustment:'Teacher adjustment saved. Review the net amount before approval.','add-adjustment':'Teacher adjustment saved. Review the net amount before approval.',pay:'Full external payment recorded. No money was transferred.',reverse:'Payment record reversed. The original payment remains in history.',void:'Unpaid payroll voided. Its history is retained.'};setNotice(id?'Draft calculated. Review included and held records before approval.':messages[modal?.action??'']??'Payroll updated.');
     if (id) router.push("/workspace/payroll?run=" + id);
     else router.refresh();
   };
@@ -128,11 +130,7 @@ export default function PayrollClient(p: PayrollClientProps) {
         </form>
       }
     >
-      {notice && (
-        <p className="notice" role="status">
-          {notice}
-        </p>
-      )}
+      <SaveNotice message={notice} onDismiss={()=>setNotice("")}/>
       {p.paymentsView ? (
         <PaymentsScreen
           admin={p.admin}
@@ -154,21 +152,21 @@ export default function PayrollClient(p: PayrollClientProps) {
           run={run}
           onAction={action}
           toolbar={
-            <div className="toolbar">
+            <div className="toolbar payroll-controls">
               <PayrollForm
+                key={run?.id??"new-payroll"}
                 compact
                 operation="calculate_payroll"
                 requestKey={p.requestKey}
                 label="Calculate draft"
-                start={run?.from ?? p.today.slice(0, 7) + "-01"}
-                end={run?.to ?? p.today}
+                today={p.today}
+                start={run?.from ?? weekPeriod(p.today).start}
+                end={run?.to ?? weekPeriod(p.today).end}
                 onSaved={onSaved}
               />
               {run?.status==='Draft'&&<button className="text-link" onClick={()=>action('add-adjustment')}>Add teacher adjustment</button>}
 <span className="spacer" />
-              <label className="sr-only" htmlFor="saved-run">
-                Select saved payroll
-              </label>
+              <label className="saved-payroll-picker" htmlFor="saved-run">Saved payroll
               <select
                 id="saved-run"
                 aria-label="Select saved payroll"
@@ -183,11 +181,11 @@ export default function PayrollClient(p: PayrollClientProps) {
                 <option value="">Current draft</option>
                 {p.runs.map((r) => (
                   <option key={r.id} value={r.id}>
-                    {r.starts_on} → {r.ends_on} · {title(r.status)} ·{" "}
+                    {periodLabel(r.starts_on,r.ends_on)} · {title(r.status)} ·{" "}
                     {r.id.slice(-6)}
                   </option>
                 ))}
-              </select>
+              </select></label>
               {(p.historyOffset > 0 || p.hasMoreRuns) && (
                 <div className="history-paging">
                   <a

@@ -8,6 +8,7 @@ import ClassRecordsTable from "../components/class-records-table";
 import ReviewSummary from "../components/review-summary";
 import {CorrectionCards,ReviewNavigation} from "../components/correction-cards";
 import {EmptyState} from "../components/prototype-ui";
+import SaveNotice from "../components/save-notice";
 import TeacherToday from "../components/teacher-today";
 import {
   PageHeading,
@@ -104,6 +105,7 @@ export default function RecordsClient(p: Props) {
         ? "overview"
         : "home";
   const router = useRouter();
+ const [notice,setNotice]=useState("");const saved=(message:string)=>{setModal(null);setNotice(message);};
   const [query, setQuery] = useState(p.paging.query),
     [filter, setFilter] = useState(p.paging.status),
 
@@ -208,6 +210,7 @@ export default function RecordsClient(p: Props) {
           tone: p.teachers.findIndex((t) => t.id === s.teacher_id),
         },
         subject: cls(s.class_id)?.subject ?? "Class",
+ classLabel:cls(s.class_id)?.code,
         start: s.effective_start,
         end: s.effective_end,
         minutes: mins(s),
@@ -343,6 +346,7 @@ export default function RecordsClient(p: Props) {
         </form>
       }
     >
+      <SaveNotice message={notice} onDismiss={()=>setNotice("")}/>
       {page === "overview" && (
         <>
           {head(
@@ -438,7 +442,7 @@ export default function RecordsClient(p: Props) {
                       </a>
                     ) : running ? (
                       <MutationForm
-                        onSaved={() => setModal(null)}
+                        onSaved={saved}
                         key={p.assignments[0]?.request_key ?? current.id}
                         operation="check_out"
                         entity={current.id}
@@ -467,9 +471,10 @@ export default function RecordsClient(p: Props) {
                 id: a.id,
                 code: cls(a.class_id)!.code,
                 subject: cls(a.class_id)!.subject,
+ status:current?.class_id===a.class_id?(currentCorrection?"Correction pending":running?"In progress":"Missing checkout"):undefined,
                 action: (
                   <MutationForm
-                    onSaved={() => setModal(null)}
+                    onSaved={saved}
                     key={a.request_key}
                     operation="check_in"
                     ariaLabel={"Check in to "+cls(a.class_id)!.subject}
@@ -520,7 +525,7 @@ export default function RecordsClient(p: Props) {
           </section>
           <section className="card">
             <div className="card-head">
-              <h2>Your recent classes</h2>
+              <h2>Your recent classes</h2><a className="text-link" href="/workspace?view=sessions">All my records <Icon name="arrow"/></a>
             </div>
             {table(p.sessions.slice(0, 5))}
           </section>
@@ -574,7 +579,7 @@ export default function RecordsClient(p: Props) {
           </section>
         </>
       )}
-      {page==='reviews'&&<>{head(titles.reviews,admin&&reviewView==='sessions'?'TEACHING REVIEW':'REVIEW & CORRECTIONS',admin&&reviewView==='sessions'?'Verify completed class records, or review time corrections.':admin?'အချိန်ပြင်ဆင်မှုနှင့် အတည်ပြုမှုအခြေအနေများ':'မိမိတောင်းဆိုမှုအခြေအနေနဲ့ Admin ရဲ့မှတ်ချက်ကို ကြည့်ပါ။',false)}{admin&&<ReviewNavigation view={reviewView} verify={p.stats.verify_count} corrections={p.stats.correction_count} missing={p.stats.missing_count} onView={setReviewView} onMissing={()=>router.push('/workspace?view=sessions&status=Missing+checkout')}/>}{admin&&reviewView==='sessions'?<section className="card"><div className="card-head"><h2>Ready to verify</h2><span className="mini-badge">{p.stats.verify_count} records</span></div>{verify.length?table(verify):<EmptyState title="No records waiting for verification" text="Review corrections or missing checkout records if any remain." action={<a className="btn small" href="/workspace?view=sessions">View all class records</a>}/>} {pagination}</section>:<CorrectionCards tab={reviewTab} onTab={setReviewTab} pagination={pagination} rows={p.corrections.filter(c=>p.paging.record_ids.includes(c.session_id)&&(reviewTab==='all'||c.status===reviewTab)).map(c=>{const s=p.sessions.find(s=>s.id===c.session_id)!;return {id:c.id,sessionId:s.id,teacher:{name:name(s.teacher_id),code:p.teachers.find(t=>t.id===s.teacher_id)?.code??s.teacher_id.slice(0,8)},subject:cls(s.class_id)?.subject??'Class',day:day(s.effective_start),status:c.status[0].toUpperCase()+c.status.slice(1),originalStart:s.original_start,originalEnd:s.original_end,requestedStart:c.proposed_start,requestedEnd:c.proposed_end,reason:c.reason,comment:c.decision_reason,actions:c.status==='pending'?admin?<><button className="btn primary small" onClick={()=>open('review',c.id)}><Icon name="check"/>Review request</button><button className="btn small" onClick={()=>open('details',s.id)}>View session</button></>:<MutationForm operation="withdraw_correction" entity={c.id} version={s.version} requestKey={c.id} label="Withdraw request"/>:admin&&c.status==='approved'&&s.verification==='pending'&&!pending(s.id)&&!locked(s.id)?<button className="btn primary small" onClick={()=>open('verify',s.id)}>Verify corrected record</button>:<button className="btn small" onClick={()=>open('details',s.id)}>View session</button>};})}/>}</>}
+      {page==='reviews'&&<>{head(titles.reviews,admin&&reviewView==='sessions'?'TEACHING REVIEW':'REVIEW & CORRECTIONS',admin&&reviewView==='sessions'?'Verify completed class records, or review time corrections.':admin?'အချိန်ပြင်ဆင်မှုနှင့် အတည်ပြုမှုအခြေအနေများ':'မိမိတောင်းဆိုမှုအခြေအနေနဲ့ Admin ရဲ့မှတ်ချက်ကို ကြည့်ပါ။',false)}{admin&&<ReviewNavigation view={reviewView} verify={p.stats.verify_count} corrections={p.stats.correction_count} missing={p.stats.missing_count} onView={setReviewView} onMissing={()=>router.push('/workspace?view=sessions&status=Missing+checkout')}/>}{admin&&reviewView==='sessions'?<section className="card"><div className="card-head"><h2>Ready to verify</h2><span className="mini-badge">{p.stats.verify_count} records</span></div>{verify.length?table(verify):<EmptyState title="No records waiting for verification" text="Review corrections or missing checkout records if any remain." action={<a className="btn small" href="/workspace?view=sessions">View all class records</a>}/>} {pagination}</section>:<CorrectionCards tab={reviewTab} onTab={setReviewTab} pagination={pagination} rows={p.corrections.filter(c=>p.paging.record_ids.includes(c.session_id)&&(reviewTab==='all'||c.status===reviewTab)).map(c=>{const s=p.sessions.find(s=>s.id===c.session_id)!;return {id:c.id,sessionId:s.id,teacher:{name:name(s.teacher_id),code:p.teachers.find(t=>t.id===s.teacher_id)?.code??s.teacher_id.slice(0,8)},subject:cls(s.class_id)?.subject??'Class',day:day(s.effective_start),status:c.status[0].toUpperCase()+c.status.slice(1),originalStart:s.original_start,originalEnd:s.original_end,requestedStart:c.proposed_start,requestedEnd:c.proposed_end,reason:c.reason,comment:c.decision_reason,actions:c.status==='pending'?admin?<><button className="btn primary small" onClick={()=>open('review',c.id)}><Icon name="check"/>Review request</button><button className="btn small" onClick={()=>open('details',s.id)}>View session</button></>:<MutationForm onSaved={saved} operation="withdraw_correction" entity={c.id} version={s.version} requestKey={c.id} label="Withdraw request"/>:admin&&c.status==='approved'&&s.verification==='pending'&&!pending(s.id)&&!locked(s.id)?<button className="btn primary small" onClick={()=>open('verify',s.id)}>Verify corrected record</button>:<button className="btn small" onClick={()=>open('details',s.id)}>View session</button>};})}/>}</>}
       {modal && (
         <Dialog
           key={modal.type + modal.id}
@@ -627,7 +632,8 @@ export default function RecordsClient(p: Props) {
                   </strong>
                 </div>
               </div>
-              {chosen.entry_reason && (
+              <details className="record-reference"><summary>Record reference</summary><code>{chosen.id}</code></details>
+{chosen.entry_reason && (
                 <p className="request-reason">{chosen.entry_reason}</p>
               )}
               {locked(chosen.id) && (
@@ -650,7 +656,7 @@ export default function RecordsClient(p: Props) {
                       : "Awaiting Admin review"}
                     {admin && !e.resolved_at && !locked(chosen!.id) && (
                       <MutationForm
-                        onSaved={() => setModal(null)}
+                        onSaved={saved}
                         operation="resolve_exception"
                         entity={e.id}
                         version={chosen!.version}
@@ -711,7 +717,7 @@ export default function RecordsClient(p: Props) {
                 history.
               </p>
               <MutationForm
-                onSaved={() => setModal(null)}
+                onSaved={saved}
                 operation="request_correction"
                 entity={chosen.id}
                 version={chosen.version}
@@ -733,7 +739,7 @@ export default function RecordsClient(p: Props) {
                 A reason is required when rejecting or resolving an exception.
               </p>
               <MutationForm
-                onSaved={() => setModal(null)}
+                onSaved={saved}
                 operation="verify_session"
  reasonRequired={p.exceptions.some(e=>e.session_id===chosen!.id&&!e.resolved_at)}
                 entity={chosen.id}
@@ -765,7 +771,7 @@ export default function RecordsClient(p: Props) {
                 </div>
               </div>
               <MutationForm
-                onSaved={() => setModal(null)}
+                onSaved={saved}
                 operation="review_correction"
                 entity={correction.id}
                 version={chosen.version}
@@ -777,7 +783,7 @@ export default function RecordsClient(p: Props) {
               <details>
                 <summary>Withdraw a stale pending request</summary>
                 <MutationForm
-                  onSaved={() => setModal(null)}
+                  onSaved={saved}
                   operation="withdraw_correction"
                   entity={correction.id}
                   version={chosen.version}
@@ -791,7 +797,7 @@ export default function RecordsClient(p: Props) {
           p.teachers.length > 0 &&
           p.classes.length > 0 ? (
             <MutationForm
-              onSaved={() => setModal(null)}
+              onSaved={saved}
               operation="create_admin_session"
  start={yangonInput(new Date().toISOString()).slice(0,10)+"T09:00"} end={yangonInput(new Date().toISOString()).slice(0,10)+"T10:00"}
               assignments={p.assignments}

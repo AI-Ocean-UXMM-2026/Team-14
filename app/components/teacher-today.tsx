@@ -23,6 +23,7 @@ export default function TeacherToday({
     id: string;
     code: string;
     subject: string;
+    status?: string;
     action: React.ReactNode;
   }[];
   earlierCorrection?: boolean;
@@ -116,7 +117,7 @@ export default function TeacherToday({
               </span>
               <div>
                 <h3>{c.subject}</h3>
-                <p>{c.code}</p>
+                <p>{c.code}{c.status&&<span className="class-live-status"> · {c.status}</span>}</p>
               </div>
               {c.action}
             </div>

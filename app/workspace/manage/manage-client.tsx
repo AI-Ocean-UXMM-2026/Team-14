@@ -1,4 +1,5 @@
 "use client";
+import SaveNotice from "@/app/components/save-notice";
 import { useState } from "react";
 import WorkspaceShell from "@/app/components/workspace-shell";
 import Dialog from "@/app/components/dialog";
@@ -101,9 +102,9 @@ export default function ManageClient({
   const person = (t: Teacher) => (
     <Person name={t.name} code={t.code} tone={teachers.indexOf(t)} />
   );
-  const saved = () => {
+  const saved = (message:string) => {
     setModal(null);
-    setNotice("Saved successfully.");
+    setNotice(message);
     router.refresh();
   };
   return (
@@ -117,11 +118,7 @@ export default function ManageClient({
         </form>
       }
     >
-      {notice && (
-        <p className="notice" role="status">
-          {notice}
-        </p>
-      )}
+      <SaveNotice message={notice} onDismiss={()=>setNotice("")}/>
       <PageHeading
         eyebrow={
           view === "teachers"

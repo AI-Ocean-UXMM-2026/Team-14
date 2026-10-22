@@ -7,6 +7,7 @@ import {
   EmptyState,
   ScrollTable,
 } from "./prototype-ui";
+import {periodLabel,schoolDate} from "@/lib/domain/display";
 import Icon from "./ui-icon";
 import {
   money,
@@ -58,7 +59,7 @@ export function PayrollScreen({
                       : "Approved payroll snapshot"}
                 </h2>
                 <p className="subtext">
-                  {run.from} → {run.to} · {run.included} eligible sessions
+                  {periodLabel(run.from,run.to)} · {run.included} eligible sessions
                 </p>
               </div>
               <div className="flex gap-2 items-center">
@@ -364,7 +365,7 @@ export function PaymentsScreen({
                   />
                 </td>
                 <td>
-                  {row.from} → {row.to}
+                  {periodLabel(row.from,row.to)}
                 </td>
                 <td>
                   <strong>{money(row.net)}</strong>
@@ -373,7 +374,7 @@ export function PaymentsScreen({
                   <Badge label={paid ? "Paid" : "Not paid"} />
                   {paid && (
                     <div className="record-note">
-                      {paid.method} · {paid.date}
+                      {paid.method} · {schoolDate(paid.date)}
                     </div>
                   )}
                 </td>
@@ -433,7 +434,7 @@ export function FinancialBreakdown({ row }: { row: FinancialRow }) {
     <>
       <Person name={row.teacher.name} code={row.teacher.code} />
       <p className="request-reason">
-        {row.from} → {row.to}
+        {periodLabel(row.from,row.to)}
       </p>
       <ScrollTable
         headings={["Session", "Minutes", "Hourly rate (MMK)", "Amount (MMK)"]}
@@ -465,7 +466,7 @@ export function FinancialBreakdown({ row }: { row: FinancialRow }) {
           <Badge label={p.reversed ? "Reversed" : "Paid"} />
           <strong> {money(p.amount)} MMK</strong>
           <p>
-            {p.date} · {p.method} · {p.reference}
+            {schoolDate(p.date)} · {p.method} · {p.reference}
           </p>
           {p.reason && <p>Reversal reason: {p.reason}</p>}
         </article>

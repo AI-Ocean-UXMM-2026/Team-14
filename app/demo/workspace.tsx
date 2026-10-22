@@ -4,6 +4,8 @@ import WorkspaceShell, {
   adminGroups,
   teacherGroups,
 } from "../components/workspace-shell";
+import ValidatedForm from "../components/validated-form";
+import PeriodFields from "../components/period-fields";
 import Dialog,{FormActions} from "../components/dialog";
 import Icon from "../components/ui-icon";
 import Activity from "../components/teaching-activity";
@@ -877,7 +879,7 @@ export default function Workspace({
           </section>
           <section className="card">
             <div className="card-head">
-              <h2>Your recent classes</h2>
+              <h2>Your recent classes</h2><button className="text-link" onClick={()=>navigate("sessions")}>All my records <Icon name="arrow"/></button>
             </div>
             {recordTable([...own].reverse().slice(0, 5))}
           </section>
@@ -1016,24 +1018,7 @@ export default function Workspace({
                 calculate(String(data.get("from")), String(data.get("to")));
               }}
             >
-              <label className="inline-filter">
-                Period start
-                <input
-                  name="from"
-                  type="date"
-                  defaultValue={currentRun?.from ?? "2026-10-12"}
-                  required
-                />
-              </label>
-              <label className="inline-filter">
-                Period end
-                <input
-                  name="to"
-                  type="date"
-                  defaultValue={currentRun?.to ?? "2026-10-18"}
-                  required
-                />
-              </label>
+              <DemoPeriodInputs key={currentRun?.id??'new'} start={currentRun?.from??'2026-10-12'} end={currentRun?.to??'2026-10-18'}/>
               <button className="btn primary">Calculate draft</button>
               <span className="spacer" />
               <select
@@ -1187,7 +1172,7 @@ function TeacherHome({
           id: c.id,
           code: c.id,
           subject: c.subject,
-          action: (
+ status:open?.classId===c.id?(correction?"Correction pending":overdue?"Missing checkout":"In progress"):undefined,          action: (
             <button
               className={"btn " + (!blocker && t.active ? "primary" : "")}
               disabled={Boolean(blocker) || !t.active}
@@ -1263,7 +1248,7 @@ function DemoForm({
     </label>
   );
   return (
-    <form
+    <ValidatedForm
       onSubmit={(event) => {
         event.preventDefault();
         onSubmit(new FormData(event.currentTarget));
@@ -1528,6 +1513,8 @@ function DemoForm({
           }[modal.type] ?? "Save changes"}
         </button>
       </FormActions>
-    </form>
+    </ValidatedForm>
   );
 }
+
+function DemoPeriodInputs({start,end}:{start:string;end:string}){const [range,setRange]=useState({start,end});return <PeriodFields start={range.start} end={range.end} today={date()} startName="from" endName="to" onChange={(start,end)=>setRange({start,end})}/>;}

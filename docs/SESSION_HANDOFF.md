@@ -39,3 +39,7 @@ If interrupted: read these logs and inspect `git status` and the latest commit/r
 5. Keep public signup disabled for invitation-only access. Account invitation/recovery and explicit Auth session revocation still use Supabase administration. Real account linking remains an intentional production extension of the prototype.
 
 Financial safeguard retained: any historical payment blocks voiding a payroll, including after reversal. Native date/select controls and pagination are deliberate accessibility/data-volume extensions. No claim of universal pixel identity or hosted end-to-end completion.
+
+## Latest UI/UX polish increment
+
+See UI_UX_POLISH.md. Reviewed prototype-latest.zip: all 30 files match the original ZIP. Completed the approved Priority 1 and 2 usability updates. Latest validation: build/typecheck passed, 88 unit/database checks passed, 20 browser checks passed; screenshots under /workspace/scratch/ux-polish-*.png. No SQL migration is needed for this increment. The user reports the existing hosted backend is working; the agent has not independently logged in to the live app. Git author email is locally configured to ayemonkyaw.amk@gmail.com to avoid the previous Vercel commit-author block. Push the UI update to main and sayasync-preview; Vercel deploys main. Preserve docs/reference/ as untracked user material.

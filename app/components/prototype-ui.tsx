@@ -15,7 +15,7 @@ export function PageHeading({
       <div>
         <div className="eyebrow">{eyebrow}</div>
         <h1>{title}</h1>
-        <p className="subtext">{subtitle}</p>
+        <p className="subtext" lang={/[\u1000-\u109f]/.test(subtitle)?"my":undefined}>{subtitle}</p>
       </div>
       <div className="flex items-center gap-2">{actions}</div>
     </section>

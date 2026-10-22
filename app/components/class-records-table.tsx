@@ -1,8 +1,10 @@
+import {schoolDate} from "@/lib/domain/display";
 import { Person, Badge, ScrollTable, EmptyState } from "./prototype-ui";
 export type ClassRecordRow = {
   id: string;
   teacher: { name: string; code: string; tone?: number };
   subject: string;
+  classLabel?:string;
   start: string;
   end: string | null;
   minutes: number;
@@ -15,12 +17,6 @@ export default function ClassRecordsTable({
 }: {
   rows: ClassRecordRow[];
 }) {
-  const day = (v: string) =>
-    new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Asia/Yangon",
-      day: "2-digit",
-      month: "short",
-    }).format(new Date(v));
   const time = (v: string | null) =>
     v
       ? new Intl.DateTimeFormat("en-GB", {
@@ -43,15 +39,15 @@ export default function ClassRecordsTable({
         ]}
       >
         {rows.map((s) => (
-          <tr key={s.id}>
+          <tr key={s.id} data-record-id={s.id}>
             <td>
               <Person {...s.teacher} />
             </td>
             <td>
               <strong>{s.subject}</strong>
-              <div className="record-note">{s.id.slice(0, 12)}</div>
+              <div className="record-note">{/^[0-9a-f]{8}-/i.test(s.id)?s.classLabel??"Class record":s.id}</div>
             </td>
-            <td>{day(s.start)}</td>
+            <td>{schoolDate(s.start)}</td>
             <td>
               {time(s.start)} <span className="muted">→</span>{" "}
               {time(s.end)}
