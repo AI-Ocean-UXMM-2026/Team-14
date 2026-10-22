@@ -5,3 +5,6 @@ node_modules/
 *.tsbuildinfo
 test-results/
 playwright-report/
+
+# Local Vercel project metadata
+.vercel/
