@@ -11,7 +11,7 @@ export default function ReviewSummary({
   onNavigate: (view: string) => void;
 }) {
   return (
-    <div className="card">
+    <div className="card review-summary">
       <div className="card-head">
         <div>
           <h2>Needs your review</h2>
