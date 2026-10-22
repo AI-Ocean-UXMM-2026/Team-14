@@ -63,3 +63,7 @@ See `docs/AUTH_FLOW_REVIEW.md`. Fixed root/login PKCE code forwarding (including
 ## Team-14 app URL
 
 The user selected `https://saya-sync-team-14.vercel.app` to replace the previous personal deployment URL. Updated README, Vercel deployment instructions (Team-14 staging), and password recovery setup. Runtime recovery already uses the current page origin; no application code or SQL change is required. Supabase Site URL/allowed redirect URLs and Vercel domain assignment must still be configured in their dashboards; workspace has no authenticated access to change them. Request fresh recovery emails from the Team-14 host after saving settings.
+
+## Login demo shortcuts removed
+
+Removed the Demo accounts heading and Admin/Teacher demo links from `/login` at the user’s request. Email/password sign-in and Forgot password remain. Existing desktop/mobile browser checks now require the demo shortcuts to be absent; standalone fictional demo checks navigate directly to `/demo`. No authentication or database permission changes. Production build and all 32 browser checks passed; log `/workspace/scratch/login-remove-demo-browser.log`. Sync Team-14 staging and personal main/preview, then wait for Vercel Ready.

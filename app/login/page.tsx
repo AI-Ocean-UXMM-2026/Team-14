@@ -37,13 +37,6 @@ export default async function Login({
             <h1>Sign in</h1>
             <LoginForm initialError={initialError} />
             <p className="signin-note"><Link className="text-link" href="/forgot-password">Forgot password?</Link></p>
-            <div className="demo" aria-label="Demo accounts">
-              <p className="demo-title">Demo accounts</p>
-              <div className="demo-buttons">
-                <Link className="demo-button" href="/demo?role=admin">Admin</Link>
-                <Link className="demo-button" href="/demo?role=teacher">Teacher</Link>
-              </div>
-            </div>
           </div>
         </main>
       </div>

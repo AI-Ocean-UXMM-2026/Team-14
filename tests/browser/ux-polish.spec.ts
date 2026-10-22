@@ -27,9 +27,10 @@ test('prototype login layout and password toggle remain available on desktop and
   await page.setViewportSize({width,height:900});await page.goto('/login');
   await expect(page.getByRole('img',{name:'Saya-Sync',exact:true})).toBeVisible();
   await expect(page.getByRole('heading',{name:'Sign in',exact:true})).toBeVisible();
-  await expect(page.getByText('Demo accounts',{exact:true})).toBeVisible();
-  await expect(page.getByRole('link',{name:'Admin',exact:true})).toHaveAttribute('href','/demo?role=admin');
-  await expect(page.getByRole('link',{name:'Teacher',exact:true})).toHaveAttribute('href','/demo?role=teacher');
+  await expect(page.getByText('Demo accounts',{exact:true})).toHaveCount(0);
+  await expect(page.getByRole('link',{name:'Admin',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('link',{name:'Teacher',exact:true})).toHaveCount(0);
+  await expect(page.getByRole('link',{name:'Forgot password?'})).toBeVisible();
   const password=page.getByLabel('Password',{exact:true});await password.fill('fictional-password');
   await expect(password).toHaveAttribute('type','password');const inputBox=await password.boundingBox(),toggleBox=await page.getByRole('button',{name:'Show password'}).boundingBox();expect(inputBox).not.toBeNull();expect(toggleBox).not.toBeNull();expect(Math.abs((inputBox!.y+inputBox!.height/2)-(toggleBox!.y+toggleBox!.height/2))).toBeLessThanOrEqual(2);await page.getByRole('button',{name:'Show password'}).click();
   await expect(password).toHaveAttribute('type','text');await page.getByRole('button',{name:'Hide password'}).click();
