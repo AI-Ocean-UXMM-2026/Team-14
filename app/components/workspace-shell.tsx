@@ -1,0 +1,301 @@
+"use client";
+import { useEffect, useState, useRef } from "react";
+import Link from "next/link";
+import Icon from "./ui-icon";
+export const adminGroups = [
+  [
+    "Teaching",
+    [
+      ["overview", "Overview"],
+      ["sessions", "Class records"],
+      ["reviews", "Review inbox"],
+    ],
+  ],
+  [
+    "Finance",
+    [
+      ["payroll", "Payroll"],
+      ["payments", "Payments"],
+    ],
+  ],
+  [
+    "Manage",
+    [
+      ["teachers", "Teachers"],
+      ["classes", "Classes & assignments"],
+      ["audit", "Activity log"],
+    ],
+  ],
+] as const;
+export const teacherGroups = [
+  [
+    "My teaching",
+    [
+      ["home", "Today & check-in"],
+      ["sessions", "My class records"],
+      ["reviews", "My corrections"],
+    ],
+  ],
+  ["My pay", [["payments", "My payments"]]],
+] as const;
+export default function WorkspaceShell({
+  children,
+  role,
+  page,
+  title,
+  demo = false,
+  name,
+  count = 0,
+  onNavigate,
+  onReset,
+  onRoleChange,
+  signOut,
+}: {
+  children: React.ReactNode;
+  role: "admin" | "teacher";
+  page: string;
+  title: string;
+  demo?: boolean;
+  name?: string;
+  count?: number;
+  onNavigate?: (page: string) => void;
+  onReset?: () => void;
+  onRoleChange?: (role: "admin" | "teacher") => void;
+  signOut?: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  const groups = role === "admin" ? adminGroups : teacherGroups;
+  const sidebar = useRef<HTMLElement>(null),
+    content = useRef<HTMLDivElement>(null),
+    toggle = useRef<HTMLButtonElement>(null),
+    [narrow, setNarrow] = useState(false),
+    wasOpen = useRef(false);
+  useEffect(() => {
+    const media = matchMedia("(max-width:1000px)");
+    const update = () => {
+      setNarrow(media.matches);
+      if (!media.matches) setOpen(false);
+    };
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+  useEffect(() => {
+    if (sidebar.current) sidebar.current.inert = narrow && !open;
+    if (content.current) content.current.inert = narrow && open;
+    const previousOverflow = document.body.style.overflow;
+    if (narrow && open) {
+      document.body.style.overflow = "hidden";
+      sidebar.current
+        ?.querySelector<HTMLButtonElement>(".sidebar-close")
+        ?.focus();
+    } else if (wasOpen.current) toggle.current?.focus();
+    wasOpen.current = narrow && open;
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [narrow, open]);
+  useEffect(() => {
+    if (!narrow || !open) return;
+    const key = (event: KeyboardEvent) => {
+      if (document.querySelector("dialog[open]")) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(false);
+      }
+      if (event.key === "Tab") {
+        const items = Array.from(
+          sidebar.current?.querySelectorAll<HTMLElement>(
+            'a[href],button:not(:disabled),select,input,[tabindex="0"]',
+          ) ?? [],
+        ).filter((el) => el.getClientRects().length);
+        const first = items[0],
+          last = items.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", key);
+    return () => document.removeEventListener("keydown", key);
+  }, [narrow, open]);
+
+  const href = (id: string) =>
+    id === "payroll"
+      ? "/workspace/payroll"
+      : id === "payments"
+        ? "/workspace/payroll?view=payments"
+        : ["teachers", "classes", "audit"].includes(id)
+          ? "/workspace/manage?view=" + id
+          : "/workspace?view=" + id;
+  return (
+    <>
+      <a className="skip-link" href="#main">
+        Skip to main content
+      </a>
+      <div id="shell" className={open ? "nav-open" : ""}>
+        <aside
+          id="sidebar"
+          ref={sidebar}
+          role={narrow && open ? "dialog" : undefined}
+          aria-modal={narrow && open ? true : undefined}
+          aria-label={narrow && open ? "Navigation" : undefined}
+          aria-hidden={narrow && !open ? true : undefined}
+        >
+          <Link
+            className="brand"
+            href={demo ? "/demo" : "/workspace"}
+            aria-label="Saya-Sync home"
+          >
+            <img
+              className="primary-logo"
+              src="/prototype/saya-sync.svg"
+              alt="Saya-Sync"
+            />
+          </Link>
+          <button
+            type="button"
+            className="sidebar-close"
+            aria-label="Close navigation"
+            onClick={() => setOpen(false)}
+          >
+            ×
+          </button>
+          <nav id="nav" aria-label="Main navigation">
+            {groups.map(([heading, items]) => (
+              <div className="nav-group" key={heading}>
+                <div className="nav-group-label">{heading}</div>
+                {items.map(([id, label]) => {
+                  const body = (
+                    <>
+                      <Icon name={id === "home" ? "overview" : id} />
+                      <span>{label}</span>
+                      {id === "reviews" && count > 0 && (
+                        <span className="count">{count}</span>
+                      )}
+                    </>
+                  );
+                  return onNavigate ? (
+                    <button
+                      key={id}
+                      className={`nav-link ${page === id ? "active" : ""}`}
+                      aria-current={page === id ? "page" : undefined}
+                      onClick={() => {
+                        onNavigate(id);
+                        setOpen(false);
+                      }}
+                    >
+                      {body}
+                    </button>
+                  ) : (
+                    <Link
+                      key={id}
+                      className={`nav-link ${page === id ? "active" : ""}`}
+                      aria-current={page === id ? "page" : undefined}
+                      href={href(id)}
+                      onClick={() => setOpen(false)}
+                    >
+                      {body}
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
+          </nav>
+          <div className="sidebar-bottom">
+            {demo && (
+              <button className="reset-link" onClick={onReset}>
+                ↻ Reset demo data
+              </button>
+            )}
+            <div className="profile">
+              <span className="avatar" aria-hidden="true">
+                {role === "admin"
+                  ? "AD"
+                  : (name ?? "Teacher")
+                      .split(" ")
+                      .map((n) => n[0])
+                      .slice(0, 2)
+                      .join("")}
+              </span>
+              <div>
+                <strong>
+                  {role === "admin"
+                    ? "Admin workspace"
+                    : (name ?? "Teacher workspace")}
+                </strong>
+                <small>
+                  {role === "admin" ? "School administrator" : "Teacher"}
+                </small>
+              </div>
+            </div>
+          </div>
+        </aside>
+        {open && (
+          <button
+            id="nav-scrim"
+            aria-label="Close navigation"
+            onClick={() => setOpen(false)}
+          />
+        )}
+        <div className="main-shell" ref={content}>
+          <header className="topbar">
+            <div className="flex items-center gap-3">
+              <button
+                ref={toggle}
+                className="icon-button mobile-only"
+                aria-label="Toggle navigation"
+                aria-controls="sidebar"
+                aria-expanded={open}
+                onClick={() => setOpen(!open)}
+              >
+                ☰
+              </button>
+              <span className="breadcrumb">
+                Workspace <span>/</span> <strong>{title}</strong>
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              {onRoleChange ? (
+                <>
+                  <label className="sr-only" htmlFor="demo-role">
+                    Demo perspective
+                  </label>
+                  <select
+                    id="demo-role"
+                    aria-label="Demo perspective"
+                    value={role}
+                    onChange={(e) =>
+                      onRoleChange(e.target.value as "admin" | "teacher")
+                    }
+                  >
+                    <option value="admin">Admin</option>
+                    <option value="teacher">Teacher</option>
+                  </select>
+                </>
+              ) : (
+                <span className="mini-badge">
+                  {role === "admin" ? "Admin" : "Teacher"}
+                </span>
+              )}
+              {demo ? (
+                <Link className="btn small" href="/login">
+                  School sign in
+                </Link>
+              ) : (
+                signOut
+              )}
+            </div>
+          </header>
+          <main id="main" tabIndex={-1}>
+            {children}
+          </main>
+        </div>
+      </div>
+    </>
+  );
+}
