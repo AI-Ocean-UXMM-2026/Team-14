@@ -1,0 +1,48 @@
+import {test,expect} from '@playwright/test';
+
+const user={id:'00000000-0000-4000-8000-000000000001',aud:'authenticated',role:'authenticated',email:'fictional@example.com',app_metadata:{provider:'email'},user_metadata:{},created_at:'2026-01-01T00:00:00Z'};
+function recoveryHash(){
+ const encode=(v:object)=>Buffer.from(JSON.stringify(v)).toString('base64url');
+ const token=[encode({alg:'HS256',typ:'JWT'}),encode({sub:user.id,exp:Math.floor(Date.now()/1000)+3600,iat:Math.floor(Date.now()/1000)}),'fictional-signature'].join('.');
+ return '#type=recovery&access_token='+token+'&refresh_token=fictional-refresh';
+}
+
+test('forgot-password requests a recovery email with the hosted reset route',async({page})=>{
+ let destination='',email='';
+ await page.route('**/auth/v1/recover**',async route=>{const body=route.request().postDataJSON();email=body.email;destination=new URL(route.request().url()).searchParams.get('redirect_to')??'';await route.fulfill({status:200,json:{}});});
+ await page.goto('/login');await page.getByRole('link',{name:'Forgot password?'}).click();
+ await page.getByRole('textbox',{name:'Email address'}).fill('fictional@example.com');await page.getByRole('button',{name:'Send recovery link'}).click();
+ await expect(page.getByRole('status')).toContainText('If an account exists');expect(email).toBe('fictional@example.com');expect(destination).toBe('http://127.0.0.1:3100/reset-password');
+});
+
+test('missing or rejected recovery links cannot update a password and are removed from the URL',async({page})=>{
+ let writes=0;await page.route('**/auth/v1/user',async route=>{if(route.request().method()==='PUT')writes++;await route.fulfill({status:401,json:{message:'Invalid token'}});});
+ await page.goto('/reset-password');await expect(page.getByRole('main').getByRole('alert')).toContainText('missing, expired or unavailable');await expect(page.getByRole('button',{name:'Update password'})).toHaveCount(0);
+ await page.goto('/reset-password'+recoveryHash());await expect(page.getByRole('main').getByRole('alert')).toBeVisible();await expect(page).toHaveURL(/\/reset-password$/);expect(writes).toBe(0);
+});
+
+test('recovery validates matching passwords, updates the existing account and signs out',async({page})=>{
+ let newPassword='',signedOut=false;
+ await page.route('**/auth/v1/user',async route=>{if(route.request().method()==='PUT')newPassword=route.request().postDataJSON().password;await route.fulfill({status:200,json:user});});
+ await page.route('**/auth/v1/logout**',async route=>{signedOut=true;await route.fulfill({status:204});});
+ // Legacy root links must reach the reset form through the login redirect.
+ await page.goto('/'+recoveryHash());await expect(page.getByRole('button',{name:'Update password'})).toBeVisible();await expect(page).toHaveURL(/\/reset-password$/);
+ await page.getByLabel('New password',{exact:true}).fill('fictional-password-new');await page.getByLabel('Confirm new password',{exact:true}).fill('different-password');await page.getByRole('button',{name:'Update password'}).click();
+ await expect(page.getByLabel('Confirm new password',{exact:true})).toHaveAccessibleDescription('Passwords must match.');expect(newPassword).toBe('');
+ await page.getByLabel('Confirm new password',{exact:true}).fill('fictional-password-new');await page.getByRole('button',{name:'Update password'}).click();
+ await expect(page.getByRole('status')).toContainText('Your password has been updated');expect(newPassword).toBe('fictional-password-new');expect(signedOut).toBe(true);
+});
+
+test('rejected password updates keep the recovery form available for retry',async({page})=>{
+ await page.route('**/auth/v1/user',async route=>{await route.fulfill(route.request().method()==='PUT'?{status:422,json:{error_code:'weak_password',message:'Weak password'}}:{status:200,json:user});});
+ await page.goto('/reset-password'+recoveryHash());await expect(page.getByLabel('New password',{exact:true})).toBeVisible();await page.getByLabel('New password',{exact:true}).fill('fictional-password-new');await page.getByLabel('Confirm new password',{exact:true}).fill('fictional-password-new');await page.getByRole('button',{name:'Update password'}).click();await expect(page.getByRole('main').getByRole('alert')).toContainText('Choose a stronger password');await expect(page.getByRole('button',{name:'Update password'})).toBeEnabled();
+});
+
+
+test('PKCE email recovery exchanges its code and opens the reset form',async({page})=>{
+ let verifier='',code='';
+ await page.route('**/auth/v1/recover**',route=>route.fulfill({status:200,json:{}}));
+ await page.route('**/auth/v1/token**',async route=>{const body=route.request().postDataJSON();verifier=body.code_verifier;code=body.auth_code;const params=new URLSearchParams(recoveryHash().slice(1));await route.fulfill({status:200,json:{access_token:params.get('access_token'),refresh_token:'fictional-refresh',token_type:'bearer',expires_in:3600,user}});});
+ await page.goto('/forgot-password');await page.getByRole('textbox',{name:'Email address'}).fill('fictional@example.com');await page.getByRole('button',{name:'Send recovery link'}).click();await expect(page.getByRole('status')).toContainText('If an account exists');
+ await page.goto('/reset-password?code=fictional-code');await expect(page.getByRole('button',{name:'Update password'})).toBeVisible();await expect(page).toHaveURL(/\/reset-password$/);expect(code).toBe('fictional-code');expect(verifier.length).toBeGreaterThan(20);
+});

@@ -47,3 +47,11 @@ See UI_UX_POLISH.md. Reviewed prototype-latest.zip: all 30 files match the origi
 ## Login form restoration
 
 Always render the prototype login form; missing Supabase configuration is reported by the existing server action instead of removing Email/Password/Sign in. Restored the “Demo accounts” heading and removed the additional invitation paragraph to match the supplied screenshot. Demo buttons still open fictional data; they do not authenticate real school accounts. Corrected the Show button vertical position. No SQL changes. Production build/typecheck passed and all 21 browser checks passed with both public Supabase environment variables explicitly empty during the build (regression coverage for the disappearing form). Rebuilt with the existing workspace configuration afterward. Desktop/mobile screenshots: `/workspace/scratch/login-desktop-preview.png` and `/workspace/scratch/login-mobile-preview.png`. Hosted sign-in was not independently tested.
+
+## Password recovery implementation
+
+Added `/forgot-password` and `/reset-password`, a Forgot password link on login, and forwarding of dashboard-issued root recovery fragments from login. Browser Supabase client explicitly consumes recovery fragments or PKCE codes; credentials are removed from browser history before verification. Reset validates confirmation/minimum 12 characters, calls Auth updateUser for the existing recovered user, and requests global sign-out. Missing/expired sessions cannot submit. No schema changes or account recreation.
+
+Production build/typecheck passed; all 26 browser checks passed, including five new mocked Auth recovery checks (email redirect, invalid/missing session, root fragment recovery/update/sign-out, rejected password retry, PKCE). Log: `/workspace/scratch/recovery-browser.log`. The tests do not send real email or change the real Admin password. Hosted environment/Supabase configuration and live Admin login remain unverified.
+
+User action after deployment: follow `docs/PASSWORD_RECOVERY.md`; Site URL must use the hosted origin and Redirect URLs must explicitly allow `/reset-password`. Open `/forgot-password`, request a fresh email and use the same browser for the new PKCE link. Never reuse the recovery link/token previously pasted into chat. Preserve the existing Admin UID/membership.

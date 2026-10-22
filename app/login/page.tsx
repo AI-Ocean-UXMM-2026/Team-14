@@ -1,5 +1,6 @@
 import Link from "next/link";
 import LoginForm from "./login-form";
+import RecoveryRedirect from "./recovery-redirect";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ export default async function Login({
 
   return (
     <div className="login-page">
+      <RecoveryRedirect />
       <a className="skip-link" href="#email">Skip to sign in</a>
       <div className="layout">
         <aside className="story" aria-label="Saya-Sync">
@@ -34,6 +36,7 @@ export default async function Login({
           <div className="form-wrap">
             <h1>Sign in</h1>
             <LoginForm initialError={initialError} />
+            <p className="signin-note"><Link className="text-link" href="/forgot-password">Forgot password?</Link></p>
             <div className="demo" aria-label="Demo accounts">
               <p className="demo-title">Demo accounts</p>
               <div className="demo-buttons">
