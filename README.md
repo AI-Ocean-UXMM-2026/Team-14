@@ -12,7 +12,7 @@ npm ci --cache /workspace/.npm-cache
 npm run dev
 ```
 
-Open `/` or `/demo` on the local server's port 3000. Demo records are fictional and persist in this browser until Reset demo data is used. Demo role selection grants no real application access. `/login` clearly shows when real authentication is unconfigured.
+Open `/` or `/demo` on the local server's port 3000. Demo records are fictional and persist in this browser until Reset demo data is used. Demo role selection grants no real application access. `/login` always displays the form and reports missing connection settings on submission. Password recovery is available at `/forgot-password` and `/reset-password`; see [recovery setup](docs/PASSWORD_RECOVERY.md).
 
 ```sh
 npm test
@@ -28,7 +28,7 @@ npm start
 
 Copy `.env.example` to ignored `.env.local` and supply a **development** project URL and publishable key through secure configuration. Do not include a service-role key. Apply `supabase/migrations/*.sql` in timestamp order to a new development project after review. The migrations include capture, review, exception, allocation-lock and Admin-entry functions. The migrations require Supabase `auth.users`, `auth.uid()`, `anon`, and `authenticated`; the local tests supply an isolated compatibility shim.
 
-Disable public registration in the Supabase dashboard. The initial Admin membership must be bootstrapped by the project owner with trusted administrative tooling. No public signup, role selector or seed account is provided for real authentication. Invitation, recovery, full session refresh, and account administration remain planned. Never connect preview deployments to production data.
+Disable public registration in the Supabase dashboard. The initial Admin membership must be bootstrapped by the project owner with trusted administrative tooling. No public signup, role selector or seed account is provided for real authentication. Password recovery and authenticated workspace session refresh are implemented. Invitations and account administration use Supabase administration. Never connect preview deployments to production data.
 
 The authenticated `/workspace` loads the latest 50 sessions plus open sessions for up to 100 pilot teachers and exposes operations permitted for the active membership: Teacher check-in/out and correction requests; Admin completed entry, correction decisions, exception resolution and session verification. It shows original/effective times and review history, and disables changes on allocated sessions. All mutation permissions are checked again in PostgreSQL. Errors retain form input; retries use the same key. Browser inputs are explicitly converted from Asia/Yangon rather than device timezone. Hosted validation is still pending.
 
