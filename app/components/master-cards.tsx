@@ -121,11 +121,12 @@ export function ClassCards({
           {!c.teachers.length && <p>No teachers assigned yet.</p>}
           <div className="card-actions">
             <button
-              className="btn small icon-only"
+              className="btn secondary small"
               aria-label={"Edit assignments for " + c.name}
               onClick={() => onAction("assign", c.id)}
             >
               <Icon name="edit" />
+              <span>Edit assignments</span>
             </button>
             <button
               className="btn small"
