@@ -39,10 +39,37 @@ test('rejected password updates keep the recovery form available for retry',asyn
 });
 
 
-test('PKCE email recovery exchanges its code and opens the reset form',async({page})=>{
+for(const entry of ['/reset-password','/','/login'])test('PKCE email recovery preserves codes at '+entry,async({page})=>{
  let verifier='',code='';
  await page.route('**/auth/v1/recover**',route=>route.fulfill({status:200,json:{}}));
  await page.route('**/auth/v1/token**',async route=>{const body=route.request().postDataJSON();verifier=body.code_verifier;code=body.auth_code;const params=new URLSearchParams(recoveryHash().slice(1));await route.fulfill({status:200,json:{access_token:params.get('access_token'),refresh_token:'fictional-refresh',token_type:'bearer',expires_in:3600,user}});});
  await page.goto('/forgot-password');await page.getByRole('textbox',{name:'Email address'}).fill('fictional@example.com');await page.getByRole('button',{name:'Send recovery link'}).click();await expect(page.getByRole('status')).toContainText('If an account exists');
- await page.goto('/reset-password?code=fictional-code');await expect(page.getByRole('button',{name:'Update password'})).toBeVisible();await expect(page).toHaveURL(/\/reset-password$/);expect(code).toBe('fictional-code');expect(verifier.length).toBeGreaterThan(20);
+ await page.goto(entry+'?code=fictional-code');await expect(page.getByRole('button',{name:'Update password'})).toBeVisible();await expect(page).toHaveURL(/\/reset-password$/);expect(code).toBe('fictional-code');expect(verifier.length).toBeGreaterThan(20);
+});
+
+
+test('recovery rate limits block repeat requests and allow a later retry',async({page})=>{
+ await page.clock.install();let requests=0;
+ await page.route('**/auth/v1/recover**',async route=>{requests++;await route.fulfill({status:429,json:{error_code:'over_email_send_rate_limit',message:'Rate limit'}});});
+ await page.goto('/forgot-password');await page.getByRole('textbox',{name:'Email address'}).fill('fictional@example.com');await page.getByRole('button',{name:'Send recovery link'}).click();
+ await expect(page.getByRole('main').getByRole('alert')).toContainText('project email limit may require a longer wait');await expect(page.getByRole('button',{name:/Try again in/})).toBeDisabled();expect(requests).toBe(1);
+ await page.clock.runFor(61000);await expect(page.getByRole('button',{name:'Send recovery link'})).toBeEnabled();expect(requests).toBe(1);
+});
+
+test('recovery network failures preserve email and give a connection error',async({page})=>{
+ await page.route('**/auth/v1/recover**',route=>route.abort());await page.goto('/forgot-password');await page.getByRole('textbox',{name:'Email address'}).fill('fictional@example.com');await page.getByRole('button',{name:'Send recovery link'}).click();
+ await expect(page.getByRole('main').getByRole('alert')).toContainText('Unable to connect');await expect(page.getByRole('textbox',{name:'Email address'})).toHaveValue('fictional@example.com');
+});
+
+test('successful password update remains successful when global sign-out fails',async({page})=>{
+ let updates=0;await page.route('**/auth/v1/user',async route=>{if(route.request().method()==='PUT')updates++;await route.fulfill({status:200,json:user});});
+ await page.route('**/auth/v1/logout**',route=>route.fulfill({status:400,json:{message:'Sign-out unavailable'}}));
+ await page.goto('/reset-password'+recoveryHash());await expect(page.getByLabel('New password',{exact:true})).toBeVisible();await page.getByLabel('New password',{exact:true}).fill('fictional-password-new');await page.getByLabel('Confirm new password',{exact:true}).fill('fictional-password-new');await page.getByRole('button',{name:'Update password'}).click();
+ await expect(page.getByRole('status')).toContainText('Your password has been updated');await expect(page.getByRole('main').getByRole('alert')).toContainText('could not sign out all sessions');expect(updates).toBe(1);await expect(page.getByRole('button',{name:'Update password'})).toHaveCount(0);
+});
+
+test('rejected PKCE codes show a clean URL and request-new-link action',async({page})=>{
+ await page.route('**/auth/v1/recover**',route=>route.fulfill({status:200,json:{}}));await page.route('**/auth/v1/token**',route=>route.fulfill({status:400,json:{error_code:'flow_state_expired',message:'Expired code'}}));
+ await page.goto('/forgot-password');await page.getByRole('textbox',{name:'Email address'}).fill('fictional@example.com');await page.getByRole('button',{name:'Send recovery link'}).click();await expect(page.getByRole('status')).toContainText('If an account exists');await page.goto('/?code=expired-fictional-code');
+ await expect(page.getByRole('main').getByRole('alert')).toContainText('expired');await expect(page).toHaveURL(/\/reset-password$/);await expect(page.getByRole('link',{name:'Request a new recovery link'})).toBeVisible();await expect(page.getByRole('button',{name:'Update password'})).toHaveCount(0);
 });
