@@ -59,3 +59,7 @@ User action after deployment: follow `docs/PASSWORD_RECOVERY.md`; Site URL must 
 ## Deep login/recovery review
 
 See `docs/AUTH_FLOW_REVIEW.md`. Fixed root/login PKCE code forwarding (including optional flow ID), validated public connection settings, more accurate login/network/rate-limit diagnostics, 60-second wall-clock recovery cooldown, and password-success handling when global sign-out fails. Added Next.js `proxy.ts` to persist refreshed workspace cookies; authorization still uses getUser plus active membership. No SQL/account/role changes. Latest production build/typecheck passed, all 103 unit/database checks and 32 browser checks passed. Browser Auth HTTP and server SDK/framework adapters are simulated; live email, actual Admin/Teacher logins and production session expiry remain unverified. Logs `/workspace/scratch/auth-review-*.log`. Sync source main/preview and Team-14 staging; do not overwrite untracked `docs/reference/`.
+
+## Team-14 app URL
+
+The user selected `https://saya-sync-team-14.vercel.app` to replace the previous personal deployment URL. Updated README, Vercel deployment instructions (Team-14 staging), and password recovery setup. Runtime recovery already uses the current page origin; no application code or SQL change is required. Supabase Site URL/allowed redirect URLs and Vercel domain assignment must still be configured in their dashboards; workspace has no authenticated access to change them. Request fresh recovery emails from the Team-14 host after saving settings.

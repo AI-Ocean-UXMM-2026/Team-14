@@ -1,5 +1,7 @@
 # SayaSync
 
+App URL: [saya-sync-team-14.vercel.app](https://saya-sync-team-14.vercel.app). Deployment repository: `AI-Ocean-UXMM-2026/Team-14`, production branch `staging`.
+
 Next.js + Supabase + Netlify foundation for part-time teacher management. The fictional local demo works without external credentials. Authenticated capture, correction and verification interfaces are implemented; payroll/payment transactions and screens are implemented; hosted integration remains under development. This is not a production payroll system.
 
 ## Local development

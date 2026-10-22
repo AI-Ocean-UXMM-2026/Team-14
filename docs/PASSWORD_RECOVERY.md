@@ -6,8 +6,8 @@ Keep the existing Supabase Auth user and membership; no SQL migration or replace
 
 1. Deploy the latest code to Vercel (`staging` for Team-14, or `main` for the personal repository).
 2. In Vercel Settings → Environment Variables, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for Production and Preview using the same Supabase project as the Admin account. Redeploy after environment changes.
-3. In Supabase Authentication → URL Configuration, set Site URL to `https://part-time-teacher-management-zeta.vercel.app` and add `https://part-time-teacher-management-zeta.vercel.app/reset-password` to Redirect URLs. Add an explicit reset URL separately for any preview deployment you use.
-4. Open `/forgot-password` (also linked from Sign in), enter the existing Admin email, and open the new email link in the same browser. Set and confirm a new password of at least 12 characters, then sign in normally.
+3. In Supabase Authentication → URL Configuration, set Site URL to `https://saya-sync-team-14.vercel.app` and add `https://saya-sync-team-14.vercel.app/reset-password` to Redirect URLs. Add an explicit reset URL separately for any preview deployment you use.
+4. Open `https://saya-sync-team-14.vercel.app/forgot-password` (also linked from Sign in), enter the existing Admin email, and open the new email link in the same browser. Set and confirm a new password of at least 12 characters, then sign in normally.
 
 Requests made by the app use Supabase PKCE and redirect directly to `/reset-password`. PKCE codes arriving at the root Site URL or login page are preserved and forwarded to the reset screen, including an optional `sb_flow_id`. Dashboard recovery emails using implicit tokens at the root Site URL are forwarded by the login page. Expired or missing links show a request-new-link action. Recovery credentials are removed from the address bar before verification; tokens and passwords are never logged by application code. The reset page uses a no-referrer policy.
 
