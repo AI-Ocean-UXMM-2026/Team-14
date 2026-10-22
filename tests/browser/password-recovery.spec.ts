@@ -10,7 +10,7 @@ function recoveryHash(){
 test('forgot-password requests a recovery email with the hosted reset route',async({page})=>{
  let destination='',email='';
  await page.route('**/auth/v1/recover**',async route=>{const body=route.request().postDataJSON();email=body.email;destination=new URL(route.request().url()).searchParams.get('redirect_to')??'';await route.fulfill({status:200,json:{}});});
- await page.goto('/login');await page.getByRole('link',{name:'Forgot password?'}).click();
+ await page.goto('/login');await page.getByRole('link',{name:'Forgot password?'}).click();await expect(page).toHaveURL(/\/forgot-password$/);
  await page.getByRole('textbox',{name:'Email address'}).fill('fictional@example.com');await page.getByRole('button',{name:'Send recovery link'}).click();
  await expect(page.getByRole('status')).toContainText('If an account exists');expect(email).toBe('fictional@example.com');expect(destination).toBe('http://127.0.0.1:3100/reset-password');
 });
