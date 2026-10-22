@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 test('prototype navigation, search and Teacher perspective',async({page})=>{
- await page.goto('/');await expect(page).toHaveURL(/\/login$/);await page.getByRole('link',{name:'Admin',exact:true}).click();
+ await page.goto('/');await expect(page).toHaveURL(/\/login$/);await page.goto('/demo');
  await expect(page.getByRole('heading',{name:'Academy overview'})).toBeVisible();
  await page.getByRole('button',{name:'Class records',exact:true}).click();
  await page.getByRole('searchbox',{name:'Search records'}).fill('Ko Min Thu');await expect(page.locator('tbody tr')).toHaveCount(3);
