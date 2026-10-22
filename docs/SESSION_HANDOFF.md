@@ -67,3 +67,7 @@ The user selected `https://saya-sync-team-14.vercel.app` to replace the previous
 ## Login demo shortcuts removed
 
 Removed the Demo accounts heading and Admin/Teacher demo links from `/login` at the user’s request. Email/password sign-in and Forgot password remain. Existing desktop/mobile browser checks now require the demo shortcuts to be absent; standalone fictional demo checks navigate directly to `/demo`. No authentication or database permission changes. Production build and all 32 browser checks passed; log `/workspace/scratch/login-remove-demo-browser.log`. Sync Team-14 staging and personal main/preview, then wait for Vercel Ready.
+
+## Latest user instruction — repository and branch
+
+All future updates must be committed and pushed to `ayemonkyaw/Syar-Sync` on `staging`. This supersedes earlier directions to sync personal main/preview or Team-14. Do not push those branches/repositories unless explicitly requested again. The local origin URL is now the canonical Syar-Sync URL; staging was initialized from the latest personal main and records this instruction. Vercel branch settings have not been changed by the agent. See AGENTS.md for persistent workflow rules.
