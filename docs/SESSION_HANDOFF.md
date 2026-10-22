@@ -71,3 +71,7 @@ Removed the Demo accounts heading and Admin/Teacher demo links from `/login` at 
 ## Latest user instruction — repository and branch
 
 All future updates must be committed and pushed to `ayemonkyaw/Syar-Sync` on `staging`. This supersedes earlier directions to sync personal main/preview or Team-14. Do not push those branches/repositories unless explicitly requested again. The local origin URL is now the canonical Syar-Sync URL; staging was initialized from the latest personal main and records this instruction. Vercel branch settings have not been changed by the agent. See AGENTS.md for persistent workflow rules.
+
+## Site scrollbars and reset-password visibility
+
+Added native scrollbar styling across document, dialogs, tables and other scroll containers: rounded blue thumbs, hover/active states, Firefox standard-property fallback and forced-colors support. No scrolling interception or animations. Added independent Show/Hide buttons to New password and Confirm new password with accessible names, aria-pressed/controls, input padding and type=button. Existing password confirmation and Auth submission remain unchanged. Production build and all 33 Chromium browser checks passed, including a new desktop/mobile toggle check that verifies values are preserved and toggles never submit. Log `/workspace/scratch/scrollbar-password-browser.log`; preview `/workspace/scratch/reset-password-toggle-mobile.png`. Push only Syar-Sync staging unless the user asks for main.

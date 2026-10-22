@@ -73,3 +73,18 @@ test('rejected PKCE codes show a clean URL and request-new-link action',async({p
  await page.goto('/forgot-password');await page.getByRole('textbox',{name:'Email address'}).fill('fictional@example.com');await page.getByRole('button',{name:'Send recovery link'}).click();await expect(page.getByRole('status')).toContainText('If an account exists');await page.goto('/?code=expired-fictional-code');
  await expect(page.getByRole('main').getByRole('alert')).toContainText('expired');await expect(page).toHaveURL(/\/reset-password$/);await expect(page.getByRole('link',{name:'Request a new recovery link'})).toBeVisible();await expect(page.getByRole('button',{name:'Update password'})).toHaveCount(0);
 });
+
+
+test('new and confirmed passwords have independent accessible visibility controls',async({page})=>{
+ let updates=0;await page.route('**/auth/v1/user',async route=>{if(route.request().method()==='PUT')updates++;await route.fulfill({status:200,json:user});});
+ for(const width of [1440,360]){
+  await page.setViewportSize({width,height:900});await page.goto('/reset-password'+recoveryHash());
+  const password=page.getByLabel('New password',{exact:true}),confirm=page.getByLabel('Confirm new password',{exact:true});
+  await expect(password).toBeVisible();await password.fill('fictional-password-new');await confirm.fill('fictional-confirmed-password');
+  await page.getByRole('button',{name:'Show new password',exact:true}).click();await expect(password).toHaveAttribute('type','text');await expect(confirm).toHaveAttribute('type','password');await expect(page.getByRole('button',{name:'Hide new password',exact:true})).toHaveAttribute('aria-pressed','true');
+  await page.getByRole('button',{name:'Show confirmed password',exact:true}).click();await expect(confirm).toHaveAttribute('type','text');
+  await page.getByRole('button',{name:'Hide new password',exact:true}).click();await expect(password).toHaveAttribute('type','password');await expect(confirm).toHaveAttribute('type','text');
+  await page.getByRole('button',{name:'Hide confirmed password',exact:true}).click();await expect(confirm).toHaveAttribute('type','password');await expect(password).toHaveValue('fictional-password-new');await expect(confirm).toHaveValue('fictional-confirmed-password');
+  expect(updates).toBe(0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+ }
+});

@@ -8,6 +8,7 @@ import ValidatedForm from '../components/validated-form';
 export default function ResetPasswordForm() {
   const started=useRef(false),generation=useRef(0),requestInFlight=useRef(false);
   const [phase,setPhase]=useState<'checking'|'ready'|'invalid'|'done'>('checking');
+  const [showPassword,setShowPassword]=useState(false),[showConfirm,setShowConfirm]=useState(false);
   const [error,setError]=useState(''),[busy,setBusy]=useState(false),[password,setPassword]=useState(''),[confirm,setConfirm]=useState('');
   useEffect(()=>{
     const begin=()=>{
@@ -51,8 +52,20 @@ export default function ResetPasswordForm() {
     }catch{setError('Unable to connect. Check your connection and try again.');}finally{requestInFlight.current=false;setBusy(false);}
   }}>
     <p className="signin-note">Choose a new password with at least 12 characters.</p>
-    <label htmlFor="new-password"><span>New password</span><input id="new-password" name="password" type="password" autoComplete="new-password" minLength={12} maxLength={1024} required value={password} onChange={e=>setPassword(e.target.value)}/></label>
-    <label htmlFor="confirm-password"><span>Confirm new password</span><input id="confirm-password" name="confirm" type="password" autoComplete="new-password" minLength={12} maxLength={1024} required value={confirm} onChange={e=>setConfirm(e.target.value)}/></label>
+    <label htmlFor="new-password">
+      <span>New password</span>
+      <div className="input-wrap">
+        <input id="new-password" name="password" type={showPassword?'text':'password'} autoComplete="new-password" minLength={12} maxLength={1024} required value={password} onChange={e=>setPassword(e.target.value)}/>
+        <button type="button" className="show" aria-label={showPassword?'Hide new password':'Show new password'} aria-controls="new-password" aria-pressed={showPassword} onClick={()=>setShowPassword(value=>!value)}>{showPassword?'Hide':'Show'}</button>
+      </div>
+    </label>
+    <label htmlFor="confirm-password">
+      <span>Confirm new password</span>
+      <div className="input-wrap">
+        <input id="confirm-password" name="confirm" type={showConfirm?'text':'password'} autoComplete="new-password" minLength={12} maxLength={1024} required value={confirm} onChange={e=>setConfirm(e.target.value)}/>
+        <button type="button" className="show" aria-label={showConfirm?'Hide confirmed password':'Show confirmed password'} aria-controls="confirm-password" aria-pressed={showConfirm} onClick={()=>setShowConfirm(value=>!value)}>{showConfirm?'Hide':'Show'}</button>
+      </div>
+    </label>
     <button className="primary" type="submit" disabled={busy}>{busy?'Updating password…':'Update password'}</button>
   </ValidatedForm>;
 }

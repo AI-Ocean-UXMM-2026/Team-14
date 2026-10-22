@@ -15,3 +15,22 @@
 .review-summary .review-row p[lang="my"]{font-size:1rem;line-height:1.9;font-weight:400;overflow-wrap:anywhere}
 .review-summary .review-row .text-link{font-size:.875rem;line-height:1.5;font-weight:700;text-align:left}
 .review-summary .review-row .number{font-size:1.25rem;line-height:1.4;font-weight:700;flex-shrink:0}
+
+/* Native scrolling with a consistent blue thumb, including tables and dialogs. */
+:root{--scrollbar-track:#f1f5f9;--scrollbar-thumb:#8aa5bc;--scrollbar-thumb-hover:#0065ad}
+*{scrollbar-width:thin;scrollbar-color:var(--scrollbar-thumb) var(--scrollbar-track)}
+@supports selector(::-webkit-scrollbar){
+  *{scrollbar-width:auto;scrollbar-color:auto}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:var(--scrollbar-track);border-radius:999px}
+  ::-webkit-scrollbar-thumb{background:var(--scrollbar-thumb);border:2px solid var(--scrollbar-track);border-radius:999px;min-height:32px}
+  ::-webkit-scrollbar-thumb:hover{background:var(--scrollbar-thumb-hover)}
+  ::-webkit-scrollbar-thumb:active{background:#004a80}
+  ::-webkit-scrollbar-corner{background:var(--scrollbar-track)}
+}
+@media(forced-colors:active){
+  *{scrollbar-color:auto}
+  ::-webkit-scrollbar-thumb{background:CanvasText;border-color:Canvas}
+  ::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:Canvas}
+}
+.login-page .input-wrap input{padding-right:76px}
