@@ -8,7 +8,7 @@
     "start": "next start --hostname 0.0.0.0",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts",
-    "test:e2e": "playwright test",
+    "test:e2e": "npm run build && node tests/ui/build-harness.mjs && playwright test",
     "test:postgres": "tsx --test tests/concurrency.postgres.ts"
   },
   "dependencies": {
@@ -28,6 +28,7 @@
     "@types/react-dom": "^19.0.0",
     "tailwindcss": "^4.0.0",
     "tsx": "^4.20.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "esbuild": "0.28.2"
   }
 }

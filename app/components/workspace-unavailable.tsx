@@ -1,0 +1,3 @@
+import AuthenticatedShell from './authenticated-shell';
+import {PageHeading,EmptyState} from './prototype-ui';
+export default function WorkspaceUnavailable({role,page,title,retry}:{role:'admin'|'teacher';page:string;title:string;retry:string}){return <AuthenticatedShell role={role} page={page} title={title}><PageHeading eyebrow="WORKSPACE" title={title} subtitle="Your school workspace"/><section className="card"><EmptyState title="School data is unavailable" text="Please retry or contact your administrator. No records have been changed." action={<a className="btn primary" href={retry}>Retry</a>}/></section></AuthenticatedShell>}

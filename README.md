@@ -41,3 +41,7 @@ See [payroll workflow](docs/PAYROLL_WORKFLOW.md). If the first four migrations a
 ## Uploaded prototype increment
 
 See [prototype alignment and migration 006 instructions](docs/PROTOTYPE_ALIGNMENT.md). The original uploaded blue design and demonstration model are now incorporated. On an existing database with 001–005 installed, run only migration 006; keep RLS enabled. Hosted authenticated browser validation remains outstanding.
+
+## Current preview handoff
+
+See [session handoff](docs/SESSION_HANDOFF.md) for completed prototype alignment, test scope and remaining hosted steps. On a database with 001–006 installed, apply **only migration 007** and keep RLS enabled. Browser tests now build production and use port 3100 plus the local-only authenticated-component fixture harness on 4175; the fixture harness does not test hosted Auth.

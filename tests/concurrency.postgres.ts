@@ -74,5 +74,14 @@ test('PostgreSQL 17 multi-connection capture and review races',async t=>{
   const result=await race(admin,`select reverse_payment('${paymentId}',${approvedVersion},'${randomUUID()}','Wrong reference')`,`select reverse_payment('${paymentId}',${approvedVersion},'${randomUUID()}','Second attempt')`);
   assert.equal(result[0].status,'fulfilled');assert.equal(result[1].status,'rejected');if(result[1].status==='rejected')assert.match(result[1].reason.message,/VERSION_CONFLICT/);assert.equal(await sql('select count(*) from payment_records'),'1');assert.equal(await sql('select count(*) from payment_records where reversed_at is not null'),'1');
  });
+ await t.test('Teacher-side assignment edit wins over a stale class-side form without lost changes',async()=>{
+  const result=await race(admin,`select manage_workspace('set_teacher_assignments','${teacher}',1,'${randomUUID()}','{"classes":[],"reason":"Coverage changed"}'::jsonb)`,`select set_class_assignments('${classId}',1,array['${teacher}'::uuid],array[]::uuid[],'Stale class form','${randomUUID()}')`);
+  assert.equal(result[0].status,'fulfilled');assert.equal(result[1].status,'rejected');if(result[1].status==='rejected')assert.match(result[1].reason.message,/VERSION_CONFLICT/);
+  assert.equal(await sql(`select count(*) from teacher_assignments where class_id='${classId}' and ends_at is null`),'0');
+ });
+ await t.test('parallel class-assignment retry writes one assignment and one audit event',async()=>{
+  const key=randomUUID(),query=`select set_class_assignments('${classId}',1,array[]::uuid[],array['${teacher}'::uuid],'New coverage','${key}')`;
+  const result=await race(admin,query,query);assert.equal(result.filter(r=>r.status==='fulfilled').length,2);assert.equal(await sql(`select count(*) from teacher_assignments where class_id='${classId}' and ends_at is null`),'1');assert.equal(await sql("select count(*) from audit_events where action='set_class_assignments'"),'1');
+ });
  }finally{await exec('docker',['rm','-f',name]).catch(()=>{});}
 });

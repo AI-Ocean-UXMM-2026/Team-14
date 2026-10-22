@@ -36,3 +36,7 @@ The agent has not applied migration 006 to the hosted project. Authenticated bro
 - PostgreSQL 17 concurrency scenarios cover capture, correction/review, allocation approval, payment and reversal races.
 - Chromium checks cover Admin/Teacher demo navigation, own-record filtering, correction dates/times, dialog discard protection, 360px navigation, protected-route redirects, and verification → payroll → payment with browser persistence.
 - Desktop screenshots compared with the uploaded prototype. These are local checks, not a claim that Netlify has deployed or that real hosted credentials were exercised.
+
+## Follow-up alignment
+
+The follow-up increment replaces the earlier dashboard/financial layout differences with shared prototype components and complete database read models. See [session handoff](SESSION_HANDOFF.md) and [parity checklist](UI_PARITY_CHECKLIST.md). Existing installations need **only migration 007 after 006**, then the updated preview deployment. Real hosted Admin/Teacher login validation is still pending. Native controls, pagination, explicit confirmation, prior-period adjustment references and account linking remain deliberate production extensions.
