@@ -41,6 +41,28 @@ An Admin creates teacher profiles and classes, assigns teachers to classes and s
 
 A **Teacher profile and a Supabase Auth account are separate records**. Creating a profile in Saya-Sync does not automatically create or email a login account. An administrator must invite or create the Auth user through trusted Supabase administration and link its user ID to the Teacher profile. Automated invitation sending from the app is not implemented.
 
+#### Enable a Teacher's login
+
+1. Create the Teacher profile in Saya-Sync, including their name, email, hourly rate and assigned classes. Ensure the profile is **Active**.
+2. In the Supabase project used by the deployed app, open **Authentication → Users**. Invite or create the Teacher's Auth account, or use their existing account. Do not create a duplicate user.
+3. Have the Teacher complete the invitation/password setup when applicable. Copy that Auth user's **User UID** from Supabase; an email address is not a UID.
+4. Sign in to Saya-Sync with an existing working **Admin** account. Open **Teachers → the Teacher card → Profile & rates → Link invited account**.
+5. Paste the UID into **Invited Teacher User UID**, then save. This links the existing profile to the Auth user through the app's protected database operation. For an unlinked account, it creates a Teacher school membership using the profile's active status.
+6. Have the Teacher sign out and sign back in with their email and password. Check that they can access their assigned classes and only their own teaching/pay information.
+
+The profile's **Active** badge alone does not confirm that a login account is linked. Matching the profile and Auth email addresses, or setting a password, does not automatically establish school membership. User UIDs identify accounts; they are not passwords. Do not publish real account IDs or credentials in documentation.
+
+#### “An active school membership is required”
+
+This message means the app could not obtain an active school membership for the signed-in user. Check the following using a working Admin account:
+
+- **Unlinked profile:** complete the account-linking steps above with the exact Auth UID.
+- **Inactive access:** check both the Teacher profile and its school membership. An existing inactive membership may need administrative review even when the profile displays Active.
+- **Account conflict:** if linking reports that the account already has another role or link, check its existing membership. The link action intentionally does not convert an Admin into a Teacher or replace another Teacher's account link.
+- **Wrong project or deployment:** ensure the live app's Supabase URL and publishable key point to the project containing the Auth user, Teacher profile and membership. If those values change in Vercel, redeploy.
+
+If these records are correct but access still fails, an administrator should inspect the membership query and RLS permissions. Do not disable RLS, recreate the account or bypass the membership check to resolve this error. Password resets update credentials; they do not repair missing membership.
+
 ### 2. Record teaching time
 
 Teachers check in to an assigned class and check out when teaching ends. Active sessions show an elapsed timer. The app interprets school-local timestamps in **Asia/Yangon**, independently of the device timezone.
