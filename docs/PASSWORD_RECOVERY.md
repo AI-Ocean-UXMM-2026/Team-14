@@ -4,7 +4,7 @@ Keep the existing Supabase Auth user and membership; no SQL migration or replace
 
 ## Hosted setup
 
-1. Commit and push updates to `ayemonkyaw/Syar-Sync` on `staging`. Deploy that revision to Vercel; production promotion or a push to `main` requires a separate explicit request. A Git push alone does not confirm deployment.
+1. Commit and push updates to `AI-Ocean-UXMM-2026/Team-14` on `staging`. Deploy that revision to Vercel; production promotion or a push to `main` requires a separate explicit request. A Git push alone does not confirm deployment.
 2. In Vercel Settings → Environment Variables, set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for Production and Preview using the same Supabase project as the Admin account. Redeploy after environment changes.
 3. In Supabase Authentication → URL Configuration, set Site URL to `https://saya-sync-team-14.vercel.app` and add `https://saya-sync-team-14.vercel.app/reset-password` to Redirect URLs. Add an explicit reset URL separately for any preview deployment you use.
 4. Open `https://saya-sync-team-14.vercel.app/forgot-password` (also linked from Sign in), enter the existing Admin email, and open the new email link in the same browser. Set and confirm a new password of at least 12 characters, then sign in normally.

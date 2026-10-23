@@ -12,7 +12,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 The user’s latest instruction supersedes earlier repository/branch sync instructions:
 
-- Commit and push all future updates to `ayemonkyaw/Syar-Sync`, branch `staging`.
-- Do not push to `main`, `sayasync-preview`, or Team-14 unless the user explicitly requests it.
+- Commit and push all future updates to `AI-Ocean-UXMM-2026/Team-14`, branch `staging`.
+- Do not push to `main`, `sayasync-preview`, or `ayemonkyaw/Syar-Sync` unless the user explicitly requests it.
 - Keep credentials and `.env.local` out of Git. Preserve untracked `docs/reference/` material.
 - A Git push does not confirm a Vercel deployment; report deployment status separately.
