@@ -39,7 +39,7 @@ test('rejected password updates keep the recovery form available for retry',asyn
 });
 
 
-for(const entry of ['/reset-password','/','/login'])test('PKCE email recovery preserves codes at '+entry,async({page})=>{
+for(const entry of ['/reset-password','/','/login','/auth/callback','/auth/confirm'])test('PKCE email recovery preserves codes at '+entry,async({page})=>{
  let verifier='',code='';
  await page.route('**/auth/v1/recover**',route=>route.fulfill({status:200,json:{}}));
  await page.route('**/auth/v1/token**',async route=>{const body=route.request().postDataJSON();verifier=body.code_verifier;code=body.auth_code;const params=new URLSearchParams(recoveryHash().slice(1));await route.fulfill({status:200,json:{access_token:params.get('access_token'),refresh_token:'fictional-refresh',token_type:'bearer',expires_in:3600,user}});});
@@ -109,4 +109,48 @@ test('unrecognized link types cannot open invitation password fields',async({pag
  let requests=0;await page.route('**/auth/v1/user',async route=>{requests++;await route.fulfill({status:200,json:user});});
  await page.goto('/set-password'+recoveryHash().replace('type=recovery','type=signup'));
  await expect(page.getByRole('main').getByRole('alert')).toContainText('invitation is missing');await expect(page.getByLabel('New password',{exact:true})).toHaveCount(0);expect(requests).toBe(0);
+});
+
+for(const entry of ['/auth/callback','/auth/confirm','/login','/'])test('token-hash recovery opens password fields from '+entry,async({page})=>{
+ let verification:any=null;
+ await page.route('**/auth/v1/verify',async route=>{
+  verification=route.request().postDataJSON();const params=new URLSearchParams(recoveryHash().slice(1));
+  await route.fulfill({status:200,json:{access_token:params.get('access_token'),refresh_token:'fictional-refresh',token_type:'bearer',expires_in:3600,user}});
+ });
+ await page.goto(entry+'?token_hash=fictional-hash&type=recovery&next=https://untrusted.example');
+ await expect(page.getByLabel('New password',{exact:true})).toBeVisible();await expect(page).toHaveURL(/\/reset-password$/);
+ expect(verification).toMatchObject({token_hash:'fictional-hash',type:'recovery'});
+});
+
+test('verified recovery survives refresh but fresh expired links clear that eligibility',async({page})=>{
+ let reads=0;await page.route('**/auth/v1/user',async route=>{reads++;await route.fulfill({status:200,json:user});});
+ await page.goto('/reset-password'+recoveryHash());await expect(page.getByLabel('New password',{exact:true})).toBeVisible();
+ const before=reads;await page.reload();await expect(page.getByLabel('New password',{exact:true})).toBeVisible();expect(reads).toBeGreaterThan(before);
+ await page.goto('/reset-password?error_code=otp_expired');await expect(page.getByRole('main').getByRole('alert')).toContainText('expired');
+ await page.reload();await expect(page.getByLabel('New password',{exact:true})).toHaveCount(0);
+});
+
+test('a normal signed-in session alone cannot open password-reset fields',async({page})=>{
+ await page.route('**/auth/v1/user',route=>route.fulfill({status:200,json:user}));
+ await page.goto('/reset-password'+recoveryHash());await expect(page.getByLabel('New password',{exact:true})).toBeVisible();
+ await page.evaluate(()=>sessionStorage.clear());await page.reload();await expect(page.getByLabel('New password',{exact:true})).toHaveCount(0);
+});
+
+test('callback errors remain on the reset screen instead of falling back to login',async({page,request})=>{
+ const response=await request.get('/auth/callback?error=access_denied&error_code=otp_expired',{maxRedirects:0});
+ expect(response.headers()['cache-control']).toContain('no-store');expect(response.headers()['referrer-policy']).toBe('no-referrer');
+ await page.goto('/auth/callback?error=access_denied&error_code=otp_expired');
+ await expect(page.getByRole('main').getByRole('alert')).toContainText('expired');await expect(page).toHaveURL(/\/reset-password$/);
+});
+
+for(const reason of ['expired','different-user'])test('refresh rejects a '+reason+' recovery session',async({page})=>{
+ await page.route('**/auth/v1/user',route=>route.fulfill({status:200,json:user}));
+ await page.goto('/reset-password'+recoveryHash());await expect(page.getByLabel('New password',{exact:true})).toBeVisible();
+ await page.evaluate(reason=>{
+  const key=Object.keys(sessionStorage).find(key=>key.startsWith('sayasync-password-flow:'))!;
+  const marker=JSON.parse(sessionStorage.getItem(key)!);
+  if(reason==='expired')marker.expires=Date.now()-1;else marker.user='another-user';
+  sessionStorage.setItem(key,JSON.stringify(marker));
+ },reason);
+ await page.reload();await expect(page.getByRole('main').getByRole('alert')).toContainText('expired');await expect(page.getByLabel('New password',{exact:true})).toHaveCount(0);
 });

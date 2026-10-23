@@ -1,11 +1,8 @@
 import {redirect} from 'next/navigation';
+import {passwordLinkKeys,passwordLinkTarget} from '@/lib/supabase/password-links';
 export default async function Home({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
-  const params=await searchParams;
-  // Supabase can fall back to Site URL; preserve recovery codes at the root.
-  const recovery=new URLSearchParams();
-  for(const key of ['code','sb_flow_id','error','error_code','type']) {
-    const value=params[key];if(typeof value==='string')recovery.set(key,value);
-  }
-  if(recovery.has('code')||recovery.has('error')||recovery.has('error_code'))redirect((recovery.get('type')==='invite'?'/set-password?':'/reset-password?')+recovery);
+  const params=await searchParams,query=new URLSearchParams();
+  for(const key of [...passwordLinkKeys,'next']){const value=params[key];if(typeof value==='string')query.set(key,value);}
+  if(['code','token_hash','error','error_code'].some(key=>query.has(key)))redirect(passwordLinkTarget(query));
   redirect('/login');
 }
