@@ -7,7 +7,7 @@
 Saya-Sync helps private schools and education centres manage part-time teachers, teaching records, time corrections, payroll preparation and payment history in one place. Teachers record their classes; administrators review the records and prepare payroll from verified teaching time.
 
 - **App:** [saya-sync-team-14.vercel.app](https://saya-sync-team-14.vercel.app/)
-- **Repository:** [ayemonkyaw/Syar-Sync](https://github.com/ayemonkyaw/Syar-Sync)
+- **Repository:** [AI-Ocean-UXMM-2026/Team-14](https://github.com/AI-Ocean-UXMM-2026/Team-14)
 - **Development branch:** `staging`. Promote to `main` when a production update is explicitly approved.
 - **Hosting:** Vercel, with Supabase for authentication and PostgreSQL.
 
@@ -88,8 +88,8 @@ Protected requests verify the current user and active school membership. Databas
 - Chromium for browser tests; Docker only for the optional PostgreSQL concurrency suite.
 
 ```bash
-git clone https://github.com/ayemonkyaw/Syar-Sync.git
-cd Syar-Sync
+git clone https://github.com/AI-Ocean-UXMM-2026/Team-14.git
+cd Team-14
 git switch staging
 npm ci
 cp .env.example .env.local
@@ -138,7 +138,7 @@ The demo works without Supabase credentials and stores fictional records in brow
 
 ## Vercel deployment and email links
 
-1. Connect Vercel to **`ayemonkyaw/Syar-Sync`**. Select Next.js, repository root `./`, Node.js 24.x and the default Next.js output directory. Use `npm ci` to install and `npm run build` to build. This is a server application, not a static export.
+1. Connect Vercel to **`AI-Ocean-UXMM-2026/Team-14`**. Select Next.js, repository root `./`, Node.js 24.x and the default Next.js output directory. Use `npm ci` to install and `npm run build` to build. This is a server application, not a static export.
 2. Select the intended production branch (`main` for the current release workflow); use `staging` for review deployments. The production domain and branch assignment must be checked in Vercel.
 3. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` for the appropriate deployment environments. Select **Config**, rather than Secret visibility, for these public framework variables. Redeploy after changing values.
 4. In Supabase **Authentication → URL Configuration**, set Site URL to `https://saya-sync-team-14.vercel.app` and allow the exact live `/reset-password` and `/set-password` URLs. Add exact preview URLs separately when needed. Use separate development data for previews.
