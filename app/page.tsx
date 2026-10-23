@@ -3,9 +3,9 @@ export default async function Home({searchParams}:{searchParams:Promise<Record<s
   const params=await searchParams;
   // Supabase can fall back to Site URL; preserve recovery codes at the root.
   const recovery=new URLSearchParams();
-  for(const key of ['code','sb_flow_id','error','error_code']) {
+  for(const key of ['code','sb_flow_id','error','error_code','type']) {
     const value=params[key];if(typeof value==='string')recovery.set(key,value);
   }
-  if(recovery.has('code')||recovery.has('error')||recovery.has('error_code'))redirect('/reset-password?'+recovery);
+  if(recovery.has('code')||recovery.has('error')||recovery.has('error_code'))redirect((recovery.get('type')==='invite'?'/set-password?':'/reset-password?')+recovery);
   redirect('/login');
 }

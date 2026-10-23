@@ -88,3 +88,25 @@ test('new and confirmed passwords have independent accessible visibility control
   expect(updates).toBe(0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
  }
 });
+
+for(const entry of ['/','/login','/set-password','/reset-password'])test('invitation opens the set-password flow from '+entry,async({page})=>{
+ let password='',signedOut=false;
+ await page.route('**/auth/v1/user',async route=>{if(route.request().method()==='PUT'){const body=route.request().postDataJSON();password=body.password;for(const field of ['email','role','data','app_metadata','user_metadata'])expect(body).not.toHaveProperty(field);}await route.fulfill({status:200,json:user});});
+ await page.route('**/auth/v1/logout**',async route=>{signedOut=true;await route.fulfill({status:204});});
+ await page.goto(entry+recoveryHash().replace('type=recovery','type=invite'));
+ await expect(page.getByRole('heading',{name:'Set your password',exact:true})).toBeVisible();await expect(page).toHaveURL(/\/set-password$/);
+ await page.getByLabel('New password',{exact:true}).fill('fictional-invited-password');await page.getByLabel('Confirm new password',{exact:true}).fill('fictional-invited-password');await page.getByRole('button',{name:'Set password',exact:true}).click();
+ await expect(page.getByRole('status')).toContainText('Your password has been set');expect(password).toBe('fictional-invited-password');expect(signedOut).toBe(true);
+});
+
+test('expired invitations require an administrator to resend them',async({page})=>{
+ await page.route('**/auth/v1/user',route=>route.fulfill({status:401,json:{message:'Expired token'}}));
+ await page.goto('/set-password'+recoveryHash().replace('type=recovery','type=invite'));
+ await expect(page.getByRole('main').getByRole('alert')).toContainText('Ask your school administrator to resend');await expect(page).toHaveURL(/\/set-password$/);await expect(page.getByRole('button',{name:'Set password',exact:true})).toHaveCount(0);await expect(page.getByRole('link',{name:'Request a new recovery link'})).toHaveCount(0);
+});
+
+test('unrecognized link types cannot open invitation password fields',async({page})=>{
+ let requests=0;await page.route('**/auth/v1/user',async route=>{requests++;await route.fulfill({status:200,json:user});});
+ await page.goto('/set-password'+recoveryHash().replace('type=recovery','type=signup'));
+ await expect(page.getByRole('main').getByRole('alert')).toContainText('invitation is missing');await expect(page.getByLabel('New password',{exact:true})).toHaveCount(0);expect(requests).toBe(0);
+});

@@ -24,3 +24,17 @@ Browser tests mock Supabase Auth responses to verify email redirects, legacy fra
 Missing/invalid deployment settings are reported separately from network/service failures. Login distinguishes rate limiting and unconfirmed emails from rejected credentials. Recovery rate limits disable the send button for a minimum 60-second countdown measured against wall-clock time; project-wide email limits can require longer. The countdown is a UI retry guard, not a replacement for Supabase rate limits.
 
 The Next.js proxy refreshes authenticated workspace cookies for both the incoming server render and outgoing browser response. Every protected operation still verifies identity and active school membership; the proxy is not an authorization bypass.
+
+## Teacher invitation links
+
+Supabase Dashboard-issued invitations use a verified `type=invite` session. The login/root bridge forwards these to `/set-password`, which consumes the invitation, clears credentials from the address bar and lets the teacher choose a password. Expired invitations ask the teacher to contact the school Admin for a new invitation. Password recovery continues to use `/reset-password`.
+
+For the selected deployment, configure Supabase Authentication → URL Configuration:
+
+- Site URL: `https://saya-sync-team-14.vercel.app`
+- Allowed Redirect URL: `https://saya-sync-team-14.vercel.app/set-password`
+- Allowed Redirect URL: `https://saya-sync-team-14.vercel.app/reset-password`
+
+When using trusted invitation tooling, set its `redirectTo` to the live `/set-password` URL. Default dashboard invitations using the root Site URL are also handled. Request a fresh invitation after changing URL settings; old localhost links do not automatically change. Do not paste or manually edit invitation tokens.
+
+The activation form only sets the invited user's password. It does not create a Teacher profile, membership, rate or class assignment. Those must already be linked by an Admin. This change adds invitation-link handling; automated invitation sending from Saya-Sync still requires a protected server-side Admin integration.
